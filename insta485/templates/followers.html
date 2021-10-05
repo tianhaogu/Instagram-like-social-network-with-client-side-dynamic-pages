@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="margin-left:15%;margin-right:15%">
+  <h1>Followers</h1>
+  {% for follower in followers %}
+    <div class="userDiv">
+      <div class="userHeader">
+        <a href="{{ "/users/" ~ follower.username ~ "/" }}">
+          <div>
+            <div style="display: inline-block;vertical-align: middle;">
+              <img src="{{follower.user_img_url}}" width="30" height="30" alt="userPhoto">
+            </div>
+            <b style="display: inline-block;vertical-align: middle;">{{follower.username}}</b>
+          </div>
+        </a>
+        {% if follower.username == logname %} 
+        {% elif follower.logname_follows_username %} following
+          <!-- DO NOT CHANGE THIS (aside from where we say 'FIXME') -->
+          <form action="/following/?target={{url_for('show_followers', user_url_slug=username)}}" method="post" enctype="multipart/form-data">
+            <input type="submit" name="unfollow" value="unfollow"/>
+            <input type="hidden" name="username" value="{{follower.username}}"/>
+            <input type="hidden" name="operation" value="unfollow"/>
+          </form>         
+        {% else %} not following
+          <!-- DO NOT CHANGE THIS (aside from where we say 'FIXME') -->
+          <form action="{{url_for('operate_following')}}?target={{ "/users/" ~ username ~ "/followers/" }}" method="post" enctype="multipart/form-data">
+            <input type="submit" name="follow" value="follow"/>
+            <input type="hidden" name="username" value="{{follower.username}}"/>
+            <input type="hidden" name="operation" value="follow"/>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}
