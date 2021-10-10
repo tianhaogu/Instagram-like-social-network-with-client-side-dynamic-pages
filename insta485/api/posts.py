@@ -63,18 +63,23 @@ def customer_error(status_code):
         "message": output,
         "status_code": status_code
     }
-    return make_response(jsonify(**message), status_code)
+    return jsonify(**message), status_code
 
 
 @insta485.app.route('/api/v1/posts/<int:postid_url_slug>/', methods=["GET"])
 def get_post(postid_url_slug):
     """Return post on postid."""
-    if not request.authorization:
+    if (not request.authorization) and (not flask.session):
         return customer_error(403)
-    username = flask.request.authorization['username']
-    password = flask.request.authorization['password']
-    if not username or not password or not check_exist(username, password):
-        return customer_error(403)
+    if not flask.session:
+        username = request.authorization['username']
+        password = request.authorization['password']
+        if not username or not password or not check_exist(username, password):
+            return customer_error(403)
+    else:
+        if "logname" not in flask.session:
+            return customer_error(403)
+        username = flask.session["logname"]
     connection = insta485.model.get_db()
 
     post_result = connection.execute(
@@ -135,13 +140,18 @@ def get_post(postid_url_slug):
 @insta485.app.route('/api/v1/posts/', methods=["GET"])
 def get_posts():
     """Return post on query parameters."""
-    if not request.authorization:
+    if (not request.authorization) and (not flask.session):
         return customer_error(403)
-    username = request.authorization['username']
-    password = request.authorization['password']
+    if not flask.session:
+        username = request.authorization['username']
+        password = request.authorization['password']
+        if not username or not password or not check_exist(username, password):
+            return customer_error(403)
+    else:
+        if "logname" not in flask.session:
+            return customer_error(403)
+        username = flask.session["logname"]
     query = request.query_string.decode('utf-8')
-    if not username or not password or not check_exist(username, password):
-        return customer_error(403)
     connection = insta485.model.get_db()
 
     size = request.args.get("size", default=10, type=int)

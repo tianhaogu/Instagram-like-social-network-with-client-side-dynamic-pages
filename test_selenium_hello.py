@@ -15,7 +15,9 @@ def test_selenium_hello():
     # browser window will open, and you can play with it using the developer
     # console.
     options = selenium.webdriver.chrome.options.Options()
+    #options.add_argument("--no-sandbox")
     options.add_argument("--headless")
+    #options.add_argument("--disable-dev-shm-usage")
 
     # chromedriver is not in the PATH, so we need to provide selenium with
     # a full path to the executable.
