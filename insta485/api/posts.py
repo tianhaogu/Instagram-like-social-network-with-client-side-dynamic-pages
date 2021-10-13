@@ -74,7 +74,8 @@ def get_post(postid_url_slug):
     if not flask.session:
         username = request.authorization['username']
         password = request.authorization['password']
-        if not username or not password or not check_exist(username, password):
+        if not username or not password\
+                or not check_exist(username, password):
             return customer_error(403)
     else:
         if "logname" not in flask.session:
@@ -83,7 +84,7 @@ def get_post(postid_url_slug):
     connection = insta485.model.get_db()
 
     post_result = connection.execute(
-        "SELECT P.postid, P.filename AS Pfilename, P.owner, P.created, " 
+        "SELECT P.postid, P.filename AS Pfilename, P.owner, P.created, "
         "U.filename AS Ufilename FROM posts P JOIN users U "
         "ON P.owner = U.username WHERE P.postid = ?", (postid_url_slug,)
     )
@@ -145,7 +146,8 @@ def get_posts():
     if not flask.session:
         username = request.authorization['username']
         password = request.authorization['password']
-        if not username or not password or not check_exist(username, password):
+        if not username or not password\
+                or not check_exist(username, password):
             return customer_error(403)
     else:
         if "logname" not in flask.session:

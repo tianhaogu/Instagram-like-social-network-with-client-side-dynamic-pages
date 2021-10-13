@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
 
+<!--
 {% for post in posts %}
-    <!--The First Instagram-->
     <div class="userDiv">
       <div class="userHeader">
         <a href="{{ "/users/" ~ post.owner ~ "/" }}">
@@ -37,7 +37,6 @@
         </p>  
         {% endfor %}
           {% if post.is_logname_like %}
-            <!-- DO NOT CHANGE THIS (aside from where we say 'FIXME') -->
             <form action="/likes/?target=/" method="post" enctype="multipart/form-data">
               <input type="hidden" name="operation" value="unlike"/>
               <input type="hidden" name="postid" value="{{post.postid}}"/>
@@ -45,26 +44,23 @@
             </form>
 
           {% else %}
-            <!-- DO NOT CHANGE THIS (aside from where we say 'FIXME') -->
             <form action="/likes/?target=/" method="post" enctype="multipart/form-data">
               <input type="hidden" name="operation" value="like"/>
               <input type="hidden" name="postid" value="{{post.postid}}"/>
               <input type="submit" name="like" value="like"/>
             </form>
           {% endif %}
-        <!-- DO NOT CHANGE THIS (aside from where we say 'FIXME') -->
         <form action="/comments/?target=/" method="post" enctype="multipart/form-data">
           <input type="hidden" name="operation" value="create"/>
           <input type="hidden" name="postid" value="{{post.postid}}"/>
           <input type="text" name="text" required/>
           <input type="submit" name="comment" value="comment"/>
         </form>
-
       </div>
     </div>
     <br>
-  
 {% endfor %}
+-->
 
 <div id="reactEntry">
   Loading ...
