@@ -243,7 +243,7 @@ def get_index():
 
 @insta485.app.route('/api/v1/comments/', methods=["POST"])
 def create_comment():
-    """Create a new comment based on the text in the JSON body for the specificed post id"""
+    """Create a new comment based on the given postid and text."""
     # Check log in
     username = check_login()
     connection = insta485.model.get_db()
@@ -288,25 +288,22 @@ def create_comment():
 
 
 
-@insta485.app.route('/api/v1/comments/<commentid>', methods=["DELETE"])
-def delete_comment(commentid):
-    """Create a new comment based on the text in the JSON body for the specificed post id"""
-    # Check log in
+@insta485.app.route('/api/v1/comments/<int:commentid_slug>/', methods=["DELETE"])
+def delete_comment(commentid_slug):
+    """Create a new comment based on the given commentid."""
     username = check_login()
     connection = insta485.model.get_db()
 
     comment_result = connection.execute(
         "SELECT commentid FROM comments WHERE commentid = ?",
-        (commentid,)
+        (commentid_slug,)
     )
     if comment_result.fetchone() is None:
         return '', 204
-    curr_comment = comment_result.fetchone()
 
-    # Delete commentid
     connection.execute(
         "DELETE FROM comments WHERE commentid = ?",
-        (commentid,)
+        (commentid_slug,)
     )
     return '', 204
 
