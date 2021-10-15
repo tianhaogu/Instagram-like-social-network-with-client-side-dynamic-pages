@@ -242,103 +242,79 @@ def get_index():
 
 
 @insta485.app.route('/api/v1/comments/', methods=["POST"])
-def post_comments():
+def create_comment():
     """Create a new comment based on the text in the JSON body for the specificed post id"""
     # Check log in
     username = check_login()
-    
+    connection = insta485.model.get_db()
+
     # Gain the parameters
     text = request.json.get("text")
-    postid = request.args.get("postid", default=-1, type=int)
-    if(-1 == postid):
+    post_id = request.args.get("postid", default=-1, type=int)
+    if post_id < 0:
         return customer_error(400)
-    
-    query = request.query_string.decode('utf-8')
-    connection = insta485.model.get_db()
-    # Query the owner
-    owner_result = connection.execute(
-        "SELECT owner FROM posts "
-        "WHERE postid = ?",
-        [postid]
+    check_post = connection.execute(
+        "SELECT * FROM posts WHERE postid = ?", (post_id,)
     )
-    owner = owner_result.fetchone()['owner']
+    curr_post = check_post.fetchone()
+    if curr_post is None or len(curr_post) == 0:
+        return customer_error(404)
 
     # Insert Data
     connection.execute(
-        "INSERT INTO comments "
-        "VALUES (?, ?, ?)",
-        [owner,postid,text]
+        "INSERT INTO comments(owner, postid, text) VALUES "
+        "(?, ?, ?)", (username, post_id, text,)
     )
 
     # Query commentid_result(?why select recent row will not cause multi-thread problem)
-    commentid_result = connection.execute(
-        "SELECT commentid FROM comments "
-        "WHERE owner = ? AND postid = ?",
-        [owner,postid]
+    new_comment_result = connection.execute(
+        "SELECT commentid FROM comments WHERE postid = ? AND owner = ?",
+        (post_id, username,)
     )
-    commentid = commentid_result.fetchone()['commentid']
-    if owner == username:
-        islognameOwnsThis = True
-    else:
-        islognameOwnsThis = False
+    if not new_comment_result.fetchone():
+        customer_error(400)
+    new_comment = new_comment_result.fetchone()
 
     # Return value
     context = {
-        "commentid":commentid,
-        "lognameOwnsThis":islognameOwnsThis,
-        "owner":owner,
-        "ownerShowUrl":"/users/" + owner + "/",
-        "text":text,
-        "url":"/api/v1/comments/" + str(commentid)
+        "commentid": new_comment["commentid"],
+        "lognameOwnsThis": True,
+        "owner": username,
+        "ownerShowUrl": "/users/" + username + "/",
+        "text": text,
+        "url": "/api/v1/comments/" + str(new_comment["commentid"]) + '/'
     }
     return jsonify(**context), 201
 
 
+
 @insta485.app.route('/api/v1/comments/<commentid>', methods=["DELETE"])
-def delete_comments(commentid):
+def delete_comment(commentid):
     """Create a new comment based on the text in the JSON body for the specificed post id"""
     # Check log in
     username = check_login()
-    
-    # Database Access
-    query = request.query_string.decode('utf-8')
     connection = insta485.model.get_db()
 
-    # Check before delete
-    # Might use try except
-    check = connection.execute(
-        "SELECT FROM comments WHERE commentid = ?",
-        [commentid]
+    comment_result = connection.execute(
+        "SELECT commentid FROM comments WHERE commentid = ?",
+        (commentid,)
     )
-    if not (check.fetchone()):
-        customer_error(400)
-
+    if comment_result.fetchone() is None:
+        return '', 204
+    curr_comment = comment_result.fetchone()
 
     # Delete commentid
     connection.execute(
         "DELETE FROM comments WHERE commentid = ?",
-        [commentid]
+        (commentid,)
     )
-
-    # Return
-    return Response(status= 204)
+    return '', 204
 
 
 @insta485.app.route('/api/v1/likes/', methods=["POST"])
 def create_like():
     """Like a post based on the postid given in the query string."""
-    if (not request.authorization) and (not flask.session):
-        return customer_error(403)
-    if not flask.session:
-        username = request.authorization['username']
-        password = request.authorization['password']
-        if not username or not password\
-                or not check_exist(username, password):
-            return customer_error(403)
-    else:
-        if "logname" not in flask.session:
-            return customer_error(403)
-        username = flask.session["logname"]
+    username = check_login()
     connection = insta485.model.get_db()
 
     post_id = request.args.get("postid", default=-1, type=int)
@@ -378,18 +354,7 @@ def create_like():
 @insta485.app.route('/api/v1/likes/<int:likeid_slug>/', methods=["DELETE"])
 def delete_like(likeid_slug):
     """Delete a post based on the likeid given."""
-    if (not request.authorization) and (not flask.session):
-        return customer_error(403)
-    if not flask.session:
-        username = request.authorization['username']
-        password = request.authorization['password']
-        if not username or not password\
-                or not check_exist(username, password):
-            return customer_error(403)
-    else:
-        if "logname" not in flask.session:
-            return customer_error(403)
-        username = flask.session["logname"]
+    username = check_login()
     connection = insta485.model.get_db()
 
     like_result = connection.execute(
