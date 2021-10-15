@@ -233,3 +233,14 @@ def get_posts():
         "url": request.path if query == '' else request.path + '?' + query
     }
     return jsonify(**context)
+
+
+@insta485.app.route('/api/v1/', methods=["GET"])
+def get_index():
+    context = {
+        "comments": "/api/v1/comments/",
+        "likes": "/api/v1/likes/",
+        "posts": "/api/v1/posts/",
+        "url": "/api/v1/"
+    }
+    return jsonify(**context)
