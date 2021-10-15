@@ -101,7 +101,7 @@ class Post extends React.Component {
   handleAddComment(event) {
     const commentUrl = this.state.commentUrl;
     const comment_text = {text: event.target.value};
-    const curr_comments = this.state.comments;
+    let curr_comments = this.state.comments;
     fetch(commentUrl, {
       credentials: 'same-origin',
       method: "POST", 
@@ -204,7 +204,6 @@ class Post extends React.Component {
     );
   }
 }
-
 
 Post.propTypes = {
   posturl: PropTypes.string.isRequired,

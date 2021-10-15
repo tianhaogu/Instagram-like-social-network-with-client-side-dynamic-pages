@@ -59,6 +59,8 @@ def customer_error(status_code):
         output = "Forbidden"
     if status_code == 404:
         output = "Not Found"
+    if status_code == 409:
+        output = "Conflict"
     message = {
         "message": output,
         "status_code": status_code
