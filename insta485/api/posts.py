@@ -6,31 +6,6 @@ from flask import (request, abort, jsonify, make_response, Response)
 import insta485
 
 
-# @insta485.app.route('/api/v1/posts/<int:postid_url_slug>/')
-# def get_post(postid_url_slug):
-#     """Return post on postid.
-#     Example:
-#     {
-#       "age": "2017-09-28 04:33:28",
-#       "img_url": "/uploads/122a7d27ca1d7420a1072f695d9290fad4501a41.jpg",
-#       "owner": "awdeorio",
-#       "owner_img_url": "/uploads/e1a7c5c32973862ee15173b0259e3efdb6a391af.jpg",
-#       "owner_show_url": "/users/awdeorio/",
-#       "post_show_url": "/posts/1/",
-#       "url": "/api/v1/posts/1/"
-#     }    """
-#     context = {
-#         "age": "2017-09-28 04:33:28",
-#         "img_url": "/uploads/122a7d27ca1d7420a1072f695d9290fad4501a41.jpg",
-#         "owner": "awdeorio",
-#         "owner_img_url": "/uploads/e1a7c5c32973862ee15173b0259e3efdb6a391af.jpg",
-#         "owner_show_url": "/users/awdeorio/",
-#         "postid": "/posts/{}/".format(postid_url_slug),
-#         "url": flask.request.path,
-#     }
-#     return flask.jsonify(**context)
-
-
 def check_exist(username, password):
     """Check whether the login username and password exist."""
     connection = insta485.model.get_db()
@@ -84,7 +59,6 @@ def check_login():
             return customer_error(403)
         username = flask.session["logname"]
     return username
-
 
 
 @insta485.app.route('/api/v1/posts/<int:postid_url_slug>/', methods=["GET"])
@@ -266,6 +240,7 @@ def get_index():
     }
     return jsonify(**context)
 
+
 @insta485.app.route('/api/v1/comments/', methods=["POST"])
 def post_comments():
     """Create a new comment based on the text in the JSON body for the specificed post id"""
@@ -318,6 +293,7 @@ def post_comments():
     }
     return jsonify(**context), 201
 
+
 @insta485.app.route('/api/v1/comments/<commentid>', methods=["DELETE"])
 def delete_comments(commentid):
     """Create a new comment based on the text in the JSON body for the specificed post id"""
@@ -347,7 +323,83 @@ def delete_comments(commentid):
     # Return
     return Response(status= 204)
 
+
+@insta485.app.route('/api/v1/likes/', methods=["POST"])
+def create_like():
+    """Like a post based on the postid given in the query string."""
+    if (not request.authorization) and (not flask.session):
+        return customer_error(403)
+    if not flask.session:
+        username = request.authorization['username']
+        password = request.authorization['password']
+        if not username or not password\
+                or not check_exist(username, password):
+            return customer_error(403)
+    else:
+        if "logname" not in flask.session:
+            return customer_error(403)
+        username = flask.session["logname"]
+    connection = insta485.model.get_db()
+
+    post_id = request.args.get("postid", default=-1, type=int)
+    if post_id < 0:
+        return customer_error(400)
+    check_post = connection.execute(
+        "SELECT * FROM posts WHERE postid = ?", (post_id,)
+    )
+    curr_post = check_post.fetchone()
+    if curr_post is None or len(curr_post) == 0:
+        return customer_error(404)
     
-    
+    like_result = connection.execute(
+        "SELECT owner FROM likes WHERE postid = ?", (post_id,)
+    )
+    likes = like_result.fetchall()
+
+    if {"owner": username} in likes:
+        return customer_error(409)
+    connection.execute(
+        "INSERT INTO likes(owner, postid) VALUES "
+        "(?, ?)", (username, post_id,)
+    )
+    new_like_result = connection.execute(
+        "SELECT likeid FROM likes WHERE postid = ? AND owner = ?",
+        (post_id, username,)
+    )
+    new_like = new_like_result.fetchone()
+
+    context = {
+        "likeid": new_like["likeid"],
+        "url": "/api/v1/likes/" + str(new_like["likeid"]) + '/' 
+    }
+    return jsonify(**context), 201
 
 
+@insta485.app.route('/api/v1/likes/<int:likeid_slug>/', methods=["DELETE"])
+def delete_like(likeid_slug):
+    """Delete a post based on the likeid given."""
+    if (not request.authorization) and (not flask.session):
+        return customer_error(403)
+    if not flask.session:
+        username = request.authorization['username']
+        password = request.authorization['password']
+        if not username or not password\
+                or not check_exist(username, password):
+            return customer_error(403)
+    else:
+        if "logname" not in flask.session:
+            return customer_error(403)
+        username = flask.session["logname"]
+    connection = insta485.model.get_db()
+
+    like_result = connection.execute(
+        "SELECT likeid FROM likes WHERE likeid = ?", (likeid_slug,)
+    )
+    curr_like = like_result.fetchone()
+    if curr_like is None:
+        return '', 204
+    
+    connection.execute(
+        "DELETE FROM likes WHERE likeid = ?", (likeid_slug,)
+    )
+    return '', 204
