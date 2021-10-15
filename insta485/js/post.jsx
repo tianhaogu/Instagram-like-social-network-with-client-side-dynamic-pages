@@ -8,13 +8,19 @@ class Post extends React.Component {
     this.state = { 
       owner: '', ownerImgUrl: '', ownerShowUrl: '', imgUrl: '', 
       postShowUrl: '', postid: '', created: '', comments: [],
-      likes: {lognameLikesThis: false, numLikes: 0, url: ''}
+      likes: {lognameLikesThis: false, numLikes: 0, url: null},
+      commentUrl: '', likeUrl: '', newComment
     };
+    this.handleAddComment = this.handleAddComment.bind(this);
+    this.handleDeleteComment = this.handleDeleteComment.bind(this);
+    this.handleLike = this.handleLike.bind(this);
+    this.handleUnlike = this.handleUnlike.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   componentDidMount() {
     const fetch_url = this.props.posturl;
-    fetch(fetch_url, {credentials: 'same-origin'})
+    fetch(fetch_url, {credentials: 'same-origin', method="GET"})
       .then((response) => {
         if (!response.ok) throw Error(response.statusText);
         return response.json();
@@ -29,10 +35,94 @@ class Post extends React.Component {
           postid: data.postid,
           created: data.created,
           comments: data.comments,
-          likes: data.likes
+          likes: data.likes,
+          commentUrl = "/api/v1/comments/?postid=" + (data.postid).toString(),
+          likeUrl = "/api/v1/likes/?postid=" + (data.postid).toString()
         });
       })
       .catch((error) => console.log(error));
+  }
+
+  handleUnlike(like_url) {
+    let num_likes = this.state.likes.numLikes;
+    fetch(like_url, {credentials: 'same-origin', method: "DELETE"})
+      .then((response) => {
+        if (!(response.ok && response.status === 204)) throw Error(response.statusText);
+        return response.json();
+      })
+      .then(() => {
+        this.setState({
+          likes: {
+            lognameLikesThis: false,
+            numLikes: num_likes - 1,
+            url: null
+          }
+        });
+      })
+      .error((error) => console.log(error));
+  }
+
+  handleLike() {
+    const likeUrl = this.state.likeUrl;
+    let num_likes = this.state.likes.numLikes;
+    fetch(likeUrl, {credentials: 'same-origin', method: "POST"})
+      .then((response) => {
+        if (!(response.ok && response.status === 201)) throw Error(response.statusText);
+        return response.json();
+      })
+      .then((like_data) => {
+        this.setState({
+          likes: {
+            lognameLikesThis: true, 
+            numLikes: num_likes + 1, 
+            url: like_data.url
+          }
+        });
+      })
+      .catch((error) => console.log(error));
+  }
+
+  handleDeleteComment(comment_id) {
+    const commentUrl = "/api/v1/comments/" + comment_id.toString() + '/';
+    fetch(commentUrl, {credentials: 'same-origin', method="DELETE"})
+      .then((response) => {
+        if (!(response.ok && response.status === 204)) throw Error(response.statusText);
+        return response.json();
+      })
+      .then(() => {
+        let after_comments = comments.filter((comment) => comment.commentid !== comment_id);
+        this.setState({
+          comments: after_comments
+        });
+      })
+      .catch((error) => console.log(error));
+  }
+
+  handleAddComment(event) {
+    const commentUrl = this.state.commentUrl;
+    const comment_text = {text: event.target.value};
+    const curr_comments = this.state.comments;
+    fetch(commentUrl, {
+      credentials: 'same-origin',
+      method: "POST", 
+      body: JSON.stringify(comment_text),
+      headers: {'Content-Type': 'application/json'}
+    })
+      .then((response) => {
+        if (!(response.ok && response.status === 201)) throw Error(response.statusText);
+        return response.json();
+      })
+      .then((comment_data) => {
+        this.setState({
+          comments: curr_comments.concat(comment_data),
+          newComment: comment_text
+        });
+      })
+      .catch((error) => console.log(error));
+  }
+
+  handleSubmit(event) {
+    event.preventDefault();
   }
 
   render() {
@@ -42,25 +132,21 @@ class Post extends React.Component {
     } = this.state;
     let numLikes = likes.numLikes;
     let likeComp;
-    if (numLikes == 0 || numLikes >= 2) {
+    if (numLikes === 0 || numLikes >= 2) {
       likeComp = <p>{numLikes} likes</p>;
     }
     else {
       likeComp = <p>{numLikes} like</p>;
     }
     let likeButton;
-    if (likes.lognameLikesThis == true) {
-      likeButton = <button className="like-unlike-button">
-        <input type="hidden" name="operation" value="unlike"/>
-        <input type="hidden" name="postid" value={postShowUrl}/>
-        <input type="submit" name="unlike" value="unlike"/>
+    if (likes.lognameLikesThis === true) {
+      likeButton = <button className="like-unlike-button" onClick={this.handleUnlike(likes.url)}>
+        Unlike
       </button>;
     }
     else {
-      likeButton = <button className="like-unlike-button">
-        <input type="hidden" name="operation" value="like"/>
-        <input type="hidden" name="postid" value={postShowUrl}/>
-        <input type="submit" name="unlike" value="like"/>
+      likeButton = <button className="like-unlike-button" onClick={this.handleLike}>
+        Like
       </button>;
     }
     let commentComp = comments.map((comment) => (
@@ -69,15 +155,20 @@ class Post extends React.Component {
           <b>{comment.owner}</b>
         </a>
         <p>{comment.text}</p>
-        {comment.lognameOwnsThis == true &&
-          <button className="delete-comment-button">
-            <input type="hidden" name="operation" value="delete"/>
-            <input type="hidden" name="commentid" value={comment.commentid}/>
-            <input type="submit" name="uncomment" value="delete"/>
+        {comment.lognameOwnsThis === true &&
+          <button className="delete-comment-button" onClick={this.handleDeleteComment(comment.commentid)}>
+            delete
           </button>
         }
       </div>
     ));
+    let commentSubmission = <form className="comment-form" onSubmit={this.handleSubmit}>
+      <label>
+        <input type="text" value={this.state.newComment} onChange={this.handleAddComment} />
+      </label>
+      <input type="submit" name="comment" value="comment"/>
+    </form>;
+
     const style_owner = {display: "inline-block", verticalAlign: "middle"};
     const style_time = {display: "inline-block", fontSize: "small"};
 
@@ -105,14 +196,9 @@ class Post extends React.Component {
         </div>
         <div className="postParagraph">
           {likeComp}
-          {commentComp}
           {likeButton}
-          <form className="comment-form">
-            <input type="hidden" name="operation" value="create"/>
-            <input type="hidden" name="postid" value={postid}/>
-            <input type="text" name="text" value="text"/>
-            <input type="submit" name="comment" value="comment"/>
-          </form>
+          {commentComp}
+          {commentSubmission}
         </div>
       </div>
     );
