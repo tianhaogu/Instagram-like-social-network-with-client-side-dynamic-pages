@@ -1,7 +1,7 @@
 """REST API for posts."""
 import hashlib
 import flask
-from flask import (request, abort, jsonify, make_response)
+from flask import (request, abort, jsonify, make_response, Response)
 #from werkzeug.exceptions import HTTPException
 import insta485
 
@@ -64,6 +64,25 @@ def customer_error(status_code):
         "status_code": status_code
     }
     return jsonify(**message), status_code
+
+
+# Kyle:I add this function to avoid style check?
+def check_login():
+    """A function to check the login before other operation"""
+    if (not request.authorization) and (not flask.session):
+        return customer_error(403)
+    if not flask.session:
+        username = request.authorization['username']
+        password = request.authorization['password']
+        if not username or not password\
+                or not check_exist(username, password):
+            return customer_error(403)
+    else:
+        if "logname" not in flask.session:
+            return customer_error(403)
+        username = flask.session["logname"]
+    return username
+
 
 
 @insta485.app.route('/api/v1/posts/<int:postid_url_slug>/', methods=["GET"])
@@ -244,3 +263,89 @@ def get_index():
         "url": "/api/v1/"
     }
     return jsonify(**context)
+
+@insta485.app.route('/api/v1/comments/', methods=["POST"])
+def post_comments():
+    """Create a new comment based on the text in the JSON body for the specificed post id"""
+    # Check log in
+    username = check_login()
+    
+    # Gain the parameters
+    text = request.json.get("text")
+    postid = request.args.get("postid", default=-1, type=int)
+    if(-1 == postid):
+        return customer_error(400)
+    
+    query = request.query_string.decode('utf-8')
+    connection = insta485.model.get_db()
+    # Query the owner
+    owner_result = connection.execute(
+        "SELECT owner FROM posts "
+        "WHERE postid = ?",
+        [postid]
+    )
+    owner = owner_result.fetchone()['owner']
+
+    # Insert Data
+    connection.execute(
+        "INSERT INTO comments "
+        "VALUES (?, ?, ?)",
+        [owner,postid,text]
+    )
+
+    # Query commentid_result(?why select recent row will not cause multi-thread problem)
+    commentid_result = connection.execute(
+        "SELECT commentid FROM comments "
+        "WHERE owner = ? AND postid = ?",
+        [owner,postid]
+    )
+    commentid = commentid_result.fetchone()['commentid']
+    if owner == username:
+        islognameOwnsThis = True
+    else:
+        islognameOwnsThis = False
+
+    # Return value
+    context = {
+        "commentid":commentid,
+        "lognameOwnsThis":islognameOwnsThis,
+        "owner":owner,
+        "ownerShowUrl":"/users/" + owner + "/",
+        "text":text,
+        "url":"/api/v1/comments/" + str(commentid)
+    }
+    return jsonify(**context), 201
+
+@insta485.app.route('/api/v1/comments/<commentid>', methods=["DELETE"])
+def delete_comments(commentid):
+    """Create a new comment based on the text in the JSON body for the specificed post id"""
+    # Check log in
+    username = check_login()
+    
+    # Database Access
+    query = request.query_string.decode('utf-8')
+    connection = insta485.model.get_db()
+
+    # Check before delete
+    # Might use try except
+    check = connection.execute(
+        "SELECT FROM comments WHERE commentid = ?",
+        [commentid]
+    )
+    if not (check.fetchone()):
+        customer_error(400)
+
+
+    # Delete commentid
+    connection.execute(
+        "DELETE FROM comments WHERE commentid = ?",
+        [commentid]
+    )
+
+    # Return
+    return Response(status= 204)
+
+    
+    
+
+
