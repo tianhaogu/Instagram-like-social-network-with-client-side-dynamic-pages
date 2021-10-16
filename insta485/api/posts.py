@@ -261,16 +261,17 @@ def create_comment():
         return customer_error(404)
 
     # Insert Data
-    new_comment_result = connection.execute(
-        "INSERT INTO comments(owner, postid, text) VALUES; "
-        "SELECT last_insert_rowid();"
+    connection.execute(
+        "INSERT INTO comments(owner, postid, text) VALUES "
         "(?, ?, ?)", (username, post_id, text,)
     )
 
-    if not new_comment_result.fetchone():
-        customer_error(400)
-    new_comment = new_comment_result.fetchone()
-    insta485.app.logger.info(new_comment)
+    # Return the latest data? How to deal with multi-clients?
+    new_comment = connection.execute(
+        "SELECT last_insert_rowid() AS commentid"
+    ).fetchone()
+
+
     # Return value
     context = {
         "commentid": new_comment["commentid"],
