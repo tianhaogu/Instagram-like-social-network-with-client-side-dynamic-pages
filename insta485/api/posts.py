@@ -261,16 +261,12 @@ def create_comment():
         return customer_error(404)
 
     # Insert Data
-    connection.execute(
-        "INSERT INTO comments(owner, postid, text) VALUES "
+    new_comment_result = connection.execute(
+        "INSERT INTO comments(owner, postid, text) VALUES; "
+        "SELECT last_insert_rowid();"
         "(?, ?, ?)", (username, post_id, text,)
     )
 
-    # Query commentid_result(?why select recent row will not cause multi-thread problem)
-    new_comment_result = connection.execute(
-        "SELECT commentid FROM comments WHERE postid = ? AND owner = ?",
-        (post_id, username,)
-    )
     if not new_comment_result.fetchone():
         customer_error(400)
     new_comment = new_comment_result.fetchone()
