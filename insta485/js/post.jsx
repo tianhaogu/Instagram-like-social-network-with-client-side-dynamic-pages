@@ -9,7 +9,7 @@ class Post extends React.Component {
       owner: '', ownerImgUrl: '', ownerShowUrl: '', imgUrl: '', 
       postShowUrl: '', postid: '', created: '', comments: [],
       likes: {lognameLikesThis: false, numLikes: 0, url: null},
-      commentUrl: '', likeUrl: '', newComment
+      commentUrl: '', likeUrl: '', newComment: ''
     };
     this.handleAddComment = this.handleAddComment.bind(this);
     this.handleDeleteComment = this.handleDeleteComment.bind(this);
@@ -20,7 +20,7 @@ class Post extends React.Component {
 
   componentDidMount() {
     const fetch_url = this.props.posturl;
-    fetch(fetch_url, {credentials: 'same-origin', method="GET"})
+    fetch(fetch_url, {credentials: 'same-origin', method: "GET"})
       .then((response) => {
         if (!response.ok) throw Error(response.statusText);
         return response.json();
@@ -36,8 +36,8 @@ class Post extends React.Component {
           created: data.created,
           comments: data.comments,
           likes: data.likes,
-          commentUrl = "/api/v1/comments/?postid=" + (data.postid).toString(),
-          likeUrl = "/api/v1/likes/?postid=" + (data.postid).toString()
+          commentUrl: "/api/v1/comments/?postid=" + (data.postid).toString(),
+          likeUrl: "/api/v1/likes/?postid=" + (data.postid).toString()
         });
       })
       .catch((error) => console.log(error));
@@ -48,7 +48,6 @@ class Post extends React.Component {
     fetch(like_url, {credentials: 'same-origin', method: "DELETE"})
       .then((response) => {
         if (!(response.ok && response.status === 204)) throw Error(response.statusText);
-        return response.json();
       })
       .then(() => {
         this.setState({
@@ -59,7 +58,7 @@ class Post extends React.Component {
           }
         });
       })
-      .error((error) => console.log(error));
+      .catch((error) => console.log(error));
   }
 
   handleLike() {
@@ -84,10 +83,9 @@ class Post extends React.Component {
 
   handleDeleteComment(comment_id) {
     const commentUrl = "/api/v1/comments/" + comment_id.toString() + '/';
-    fetch(commentUrl, {credentials: 'same-origin', method="DELETE"})
+    fetch(commentUrl, {credentials: 'same-origin', method: "DELETE"})
       .then((response) => {
         if (!(response.ok && response.status === 204)) throw Error(response.statusText);
-        return response.json();
       })
       .then(() => {
         let after_comments = comments.filter((comment) => comment.commentid !== comment_id);

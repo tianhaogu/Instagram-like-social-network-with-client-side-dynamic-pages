@@ -287,7 +287,6 @@ def create_comment():
     return jsonify(**context), 201
 
 
-
 @insta485.app.route('/api/v1/comments/<int:commentid_slug>/', methods=["DELETE"])
 def delete_comment(commentid_slug):
     """Create a new comment based on the given commentid."""

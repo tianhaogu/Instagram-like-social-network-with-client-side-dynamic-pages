@@ -14,7 +14,7 @@ class Index extends React.Component {
 
   componentDidMount() {
     const fetch_url = this.props.url;
-    fetch(fetch_url, {credentials: 'same-origin', method="GET"})
+    fetch(fetch_url, {credentials: 'same-origin', method: "GET"})
       .then((response) => {
         if (!response.ok) throw Error(response.statusText);
         return response.json();
@@ -36,7 +36,7 @@ class Index extends React.Component {
     }
     const next_url = this.state.next;
     const curr_result = this.state.results;
-    fetch(next_url, {credentials: 'same-origin', method="GET"})
+    fetch(next_url, {credentials: 'same-origin', method: "GET"})
       .then((next_response) => {
         if (!next_response.ok) throw Error(next_response.statusText);
         return next_response.json();
@@ -60,6 +60,7 @@ class Index extends React.Component {
           next={this.fetchMoreData}
           hasMore={this.state.hasMore}
           loader={<h4>Loading...</h4>}
+          scrollThreshold="200px"
           endMessage={
             <p style={{ textAlign: "center" }}>
               <b>That's all of the posts!</b>
