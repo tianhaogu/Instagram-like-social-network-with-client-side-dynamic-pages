@@ -271,8 +271,6 @@ def create_comment():
         "SELECT last_insert_rowid() AS commentid"
     ).fetchone()
 
-
-    # Return value
     context = {
         "commentid": new_comment["commentid"],
         "lognameOwnsThis": True,
