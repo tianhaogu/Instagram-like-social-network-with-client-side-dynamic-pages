@@ -43,7 +43,8 @@ class Post extends React.Component {
       .catch((error) => console.log(error));
   }
 
-  handleUnlike(like_url) {
+  handleUnlike() {
+    const like_url = this.state.likes.url;
     let num_likes = this.state.likes.numLikes;
     fetch(like_url, {credentials: 'same-origin', method: "DELETE"})
       .then((response) => {
@@ -88,7 +89,7 @@ class Post extends React.Component {
         if (!(response.ok && response.status === 204)) throw Error(response.statusText);
       })
       .then(() => {
-        let after_comments = comments.filter((comment) => comment.commentid !== comment_id);
+        let after_comments = this.state.comments.filter((comment) => comment.commentid !== comment_id);
         this.setState({
           comments: after_comments
         });
@@ -138,7 +139,7 @@ class Post extends React.Component {
     }
     let likeButton;
     if (likes.lognameLikesThis === true) {
-      likeButton = <button className="like-unlike-button" onClick={this.handleUnlike(likes.url)}>
+      likeButton = <button className="like-unlike-button" onClick={this.handleUnlike}>
         Unlike
       </button>;
     }
