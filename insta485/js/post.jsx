@@ -19,7 +19,6 @@ class Post extends React.Component {
       newComment: "",
     };
     this.handleUnlike = this.handleUnlike.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
     this.handleDoubleClick = this.handleDoubleClick.bind(this);
     this.handleLike = this.handleLike.bind(this);
     this.handleDeleteComment = this.handleDeleteComment.bind(this);
@@ -141,7 +140,7 @@ class Post extends React.Component {
   handleAddComment(event) {
     const commentUrl = this.state.commentUrl;
     const comment_text = {text: this.state.newComment};
-    console.log(newComment);
+    console.log(this.state.newComment);
     console.log(event.target.value);
     let curr_comments = this.state.comments;
     fetch(commentUrl, {

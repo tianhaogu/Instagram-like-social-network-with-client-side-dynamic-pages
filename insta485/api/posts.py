@@ -270,7 +270,7 @@ def create_comment():
     if not new_comment_result.fetchone():
         customer_error(400)
     new_comment = new_comment_result.fetchone()
-
+    insta485.app.logger.info(new_comment)
     # Return value
     context = {
         "commentid": new_comment["commentid"],
