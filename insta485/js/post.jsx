@@ -1,26 +1,34 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-
+import React from "react";
+import PropTypes from "prop-types";
 
 class Post extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { 
-      owner: '', ownerImgUrl: '', ownerShowUrl: '', imgUrl: '', 
-      postShowUrl: '', postid: '', created: '', comments: [],
-      likes: {lognameLikesThis: false, numLikes: 0, url: null},
-      commentUrl: '', likeUrl: '', newComment: ''
+    this.state = {
+      owner: "",
+      ownerImgUrl: "",
+      ownerShowUrl: "",
+      imgUrl: "",
+      postShowUrl: "",
+      postid: "",
+      created: "",
+      comments: [],
+      likes: { lognameLikesThis: false, numLikes: 0, url: null },
+      commentUrl: "",
+      likeUrl: "",
+      newComment: "",
     };
     this.handleAddComment = this.handleAddComment.bind(this);
     this.handleDeleteComment = this.handleDeleteComment.bind(this);
     this.handleLike = this.handleLike.bind(this);
     this.handleUnlike = this.handleUnlike.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleDoubleClick = this.handleDoubleClick.bind(this);
   }
 
   componentDidMount() {
     const fetch_url = this.props.posturl;
-    fetch(fetch_url, {credentials: 'same-origin', method: "GET"})
+    fetch(fetch_url, { credentials: "same-origin", method: "GET" })
       .then((response) => {
         if (!response.ok) throw Error(response.statusText);
         return response.json();
@@ -36,8 +44,8 @@ class Post extends React.Component {
           created: data.created,
           comments: data.comments,
           likes: data.likes,
-          commentUrl: "/api/v1/comments/?postid=" + (data.postid).toString(),
-          likeUrl: "/api/v1/likes/?postid=" + (data.postid).toString()
+          commentUrl: "/api/v1/comments/?postid=" + data.postid.toString(),
+          likeUrl: "/api/v1/likes/?postid=" + data.postid.toString(),
         });
       })
       .catch((error) => console.log(error));
@@ -46,17 +54,39 @@ class Post extends React.Component {
   handleUnlike() {
     const like_url = this.state.likes.url;
     let num_likes = this.state.likes.numLikes;
-    fetch(like_url, {credentials: 'same-origin', method: "DELETE"})
+    fetch(like_url, { credentials: "same-origin", method: "DELETE" })
       .then((response) => {
-        if (!(response.ok && response.status === 204)) throw Error(response.statusText);
+        if (!(response.ok && response.status === 204))
+          throw Error(response.statusText);
       })
       .then(() => {
         this.setState({
           likes: {
             lognameLikesThis: false,
             numLikes: num_likes - 1,
-            url: null
-          }
+            url: null,
+          },
+        });
+      })
+      .catch((error) => console.log(error));
+  }
+
+  handleDoubleClick() {
+    const likeUrl = this.state.likeUrl;
+    let num_likes = this.state.likes.numLikes;
+    fetch(likeUrl, { credentials: "same-origin", method: "POST" })
+      .then((response) => {
+        if (!(response.ok && response.status === 201))
+          throw Error(response.statusText);
+        return response.json();
+      })
+      .then((like_data) => {
+        this.setState({
+          likes: {
+            lognameLikesThis: true,
+            numLikes: num_likes + 1,
+            url: like_data.url,
+          },
         });
       })
       .catch((error) => console.log(error));
@@ -65,33 +95,37 @@ class Post extends React.Component {
   handleLike() {
     const likeUrl = this.state.likeUrl;
     let num_likes = this.state.likes.numLikes;
-    fetch(likeUrl, {credentials: 'same-origin', method: "POST"})
+    fetch(likeUrl, { credentials: "same-origin", method: "POST" })
       .then((response) => {
-        if (!(response.ok && response.status === 201)) throw Error(response.statusText);
+        if (!(response.ok && response.status === 201))
+          throw Error(response.statusText);
         return response.json();
       })
       .then((like_data) => {
         this.setState({
           likes: {
-            lognameLikesThis: true, 
-            numLikes: num_likes + 1, 
-            url: like_data.url
-          }
+            lognameLikesThis: true,
+            numLikes: num_likes + 1,
+            url: like_data.url,
+          },
         });
       })
       .catch((error) => console.log(error));
   }
 
   handleDeleteComment(comment_id) {
-    const commentUrl = "/api/v1/comments/" + comment_id.toString() + '/';
-    fetch(commentUrl, {credentials: 'same-origin', method: "DELETE"})
+    const commentUrl = "/api/v1/comments/" + comment_id.toString() + "/";
+    fetch(commentUrl, { credentials: "same-origin", method: "DELETE" })
       .then((response) => {
-        if (!(response.ok && response.status === 204)) throw Error(response.statusText);
+        if (!(response.ok && response.status === 204))
+          throw Error(response.statusText);
       })
       .then(() => {
-        let after_comments = this.state.comments.filter((comment) => comment.commentid !== comment_id);
+        let after_comments = this.state.comments.filter(
+          (comment) => comment.commentid !== comment_id
+        );
         this.setState({
-          comments: after_comments
+          comments: after_comments,
         });
       })
       .catch((error) => console.log(error));
@@ -99,22 +133,23 @@ class Post extends React.Component {
 
   handleAddComment(event) {
     const commentUrl = this.state.commentUrl;
-    const comment_text = {text: event.target.value};
+    const comment_text = { text: event.target.value };
     let curr_comments = this.state.comments;
     fetch(commentUrl, {
-      credentials: 'same-origin',
-      method: "POST", 
+      credentials: "same-origin",
+      method: "POST",
       body: JSON.stringify(comment_text),
-      headers: {'Content-Type': 'application/json'}
+      headers: { "Content-Type": "application/json" },
     })
       .then((response) => {
-        if (!(response.ok && response.status === 201)) throw Error(response.statusText);
+        if (!(response.ok && response.status === 201))
+          throw Error(response.statusText);
         return response.json();
       })
       .then((comment_data) => {
         this.setState({
           comments: curr_comments.concat(comment_data),
-          newComment: comment_text
+          newComment: comment_text,
         });
       })
       .catch((error) => console.log(error));
@@ -126,27 +161,36 @@ class Post extends React.Component {
 
   render() {
     const {
-      owner, ownerImgUrl, ownerShowUrl, imgUrl, postShowUrl, postid, 
-      created, comments, likes
+      owner,
+      ownerImgUrl,
+      ownerShowUrl,
+      imgUrl,
+      postShowUrl,
+      postid,
+      created,
+      comments,
+      likes,
     } = this.state;
     let numLikes = likes.numLikes;
     let likeComp;
     if (numLikes === 0 || numLikes >= 2) {
       likeComp = <p>{numLikes} likes</p>;
-    }
-    else {
+    } else {
       likeComp = <p>{numLikes} like</p>;
     }
     let likeButton;
     if (likes.lognameLikesThis === true) {
-      likeButton = <button className="like-unlike-button" onClick={this.handleUnlike}>
-        Unlike
-      </button>;
-    }
-    else {
-      likeButton = <button className="like-unlike-button" onClick={this.handleLike}>
-        Like
-      </button>;
+      likeButton = (
+        <button className="like-unlike-button" onClick={this.handleUnlike}>
+          Unlike
+        </button>
+      );
+    } else {
+      likeButton = (
+        <button className="like-unlike-button" onClick={this.handleLike}>
+          Like
+        </button>
+      );
     }
     let commentComp = comments.map((comment) => (
       <div key={comment.commentid}>
@@ -154,22 +198,31 @@ class Post extends React.Component {
           <b>{comment.owner}</b>
         </a>
         <p>{comment.text}</p>
-        {comment.lognameOwnsThis === true &&
-          <button className="delete-comment-button" onClick={this.handleDeleteComment(comment.commentid)}>
+        {comment.lognameOwnsThis === true && (
+          <button
+            className="delete-comment-button"
+            onClick={this.handleDeleteComment.bind(this, comment.commentid)}
+          >
             delete
           </button>
-        }
+        )}
       </div>
     ));
-    let commentSubmission = <form className="comment-form" onSubmit={this.handleSubmit}>
-      <label>
-        <input type="text" value={this.state.newComment} onChange={this.handleAddComment} />
-      </label>
-      <input type="submit" name="comment" value="comment"/>
-    </form>;
+    let commentSubmission = (
+      <form className="comment-form" onSubmit={this.handleSubmit}>
+        <label>
+          <input
+            type="text"
+            value={this.state.newComment}
+            onChange={this.handleAddComment}
+          />
+        </label>
+        <input type="submit" name="comment" value="comment" />
+      </form>
+    );
 
-    const style_owner = {display: "inline-block", verticalAlign: "middle"};
-    const style_time = {display: "inline-block", fontSize: "small"};
+    const style_owner = { display: "inline-block", verticalAlign: "middle" };
+    const style_time = { display: "inline-block", fontSize: "small" };
 
     return (
       <div className="post">
@@ -177,21 +230,24 @@ class Post extends React.Component {
           <a href={ownerShowUrl}>
             <div>
               <div style={style_owner}>
-                <img src={ownerImgUrl} width="30" height="30" alt="Portrait"/>
+                <img src={ownerImgUrl} width="30" height="30" alt="Portrait" />
               </div>
-              <b style={style_owner}>
-                {owner}
-              </b>
+              <b style={style_owner}>{owner}</b>
             </div>
           </a>
           <a href={postShowUrl}>
-            <p style={style_time}>
-              {created}
-            </p>
+            <p style={style_time}>{created}</p>
           </a>
         </div>
         <div className="postPhoto">
-          <img src={imgUrl} alt="postPhoto"/>
+          <button>
+            <img
+              src={imgUrl}
+              alt="postPhoto"
+              onDoubleClick={this.handleDoubleClick}
+            />
+          </button>
+          {/* THIS IS WHERE THE DOUBLE CLICK LOCKED */}
         </div>
         <div className="postParagraph">
           {likeComp}
