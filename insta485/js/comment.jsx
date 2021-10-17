@@ -42,7 +42,7 @@ Comment.propTypes = {
     ownerShowUrl: PropTypes.string.isRequired,
     text: PropTypes.string.isRequired,
     url: PropTypes.string.isRequired,
-  }),
+  }).isRequired,
   deleteFunc: PropTypes.func.isRequired,
 };
 

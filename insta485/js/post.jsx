@@ -54,9 +54,10 @@ class Post extends React.Component {
   }
 
   handleUnlikeClick() {
-    const like_url = this.state.likes.url;
-    const num_likes = this.state.likes.numLikes;
-    fetch(like_url, { credentials: 'same-origin', method: 'DELETE' })
+    const { likes } = this.state;
+    const likeUrlDelete = likes.url;
+    const numLike = likes.numLikes;
+    fetch(likeUrlDelete, { credentials: 'same-origin', method: 'DELETE' })
       .then((response) => {
         if (!(response.ok && response.status === 204)) { throw Error(response.statusText); }
       })
@@ -64,7 +65,7 @@ class Post extends React.Component {
         this.setState({
           likes: {
             lognameLikesThis: false,
-            numLikes: num_likes - 1,
+            numLikes: numLike - 1,
             url: null,
           },
         });
@@ -73,14 +74,15 @@ class Post extends React.Component {
   }
 
   handleDoubleClick() {
-    if (this.state.likes.lognameLikesThis === false) {
+    const { likes } = this.state;
+    if (likes.lognameLikesThis === false) {
       this.handleLikeClick();
     }
   }
 
   handleLikeClick() {
-    const { likeUrl } = this.state;
-    const num_likes = this.state.likes.numLikes;
+    const { likeUrl, likes } = this.state;
+    const numLike = likes.numLikes;
     fetch(likeUrl, { credentials: 'same-origin', method: 'POST' })
       .then((response) => {
         if (!(response.ok && response.status === 201)) { throw Error(response.statusText); }
@@ -90,7 +92,7 @@ class Post extends React.Component {
         this.setState({
           likes: {
             lognameLikesThis: true,
-            numLikes: num_likes + 1,
+            numLikes: numLike + 1,
             url: likeData.url,
           },
         });
@@ -105,11 +107,12 @@ class Post extends React.Component {
         if (!(response.ok && response.status === 204)) { throw Error(response.statusText); }
       })
       .then(() => {
-        const after_comments = this.state.comments.filter(
+        const { comments } = this.state;
+        const afterComments = comments.filter(
           (comment) => comment.commentid !== commentId,
         );
         this.setState({
-          comments: after_comments,
+          comments: afterComments,
         });
       })
       .catch((error) => console.log(error));
