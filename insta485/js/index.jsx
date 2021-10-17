@@ -52,6 +52,10 @@ class Index extends React.Component {
   }
 
   render() {
+    if (String(window.performance.getEntriesByType('navigation')[0].type) === 'back_forward') {
+      this.state = window.history.state;
+    }
+    window.history.replaceState(this.state, '', '/');
     const { results, hasMore } = this.state;
     return (
       <div className="posts">
