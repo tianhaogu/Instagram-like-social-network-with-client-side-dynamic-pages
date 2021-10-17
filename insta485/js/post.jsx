@@ -16,7 +16,6 @@ class Post extends React.Component {
       ownerShowUrl: '',
       imgUrl: '',
       postShowUrl: '',
-      postid: '',
       created: '',
       comments: [],
       likes: { lognameLikesThis: false, numLikes: 0, url: null },
@@ -44,7 +43,6 @@ class Post extends React.Component {
           ownerShowUrl: data.ownerShowUrl,
           imgUrl: data.imgUrl,
           postShowUrl: data.postShowUrl,
-          postid: data.postid,
           created: data.created,
           comments: data.comments,
           likes: data.likes,
@@ -88,27 +86,27 @@ class Post extends React.Component {
         if (!(response.ok && response.status === 201)) { throw Error(response.statusText); }
         return response.json();
       })
-      .then((like_data) => {
+      .then((likeData) => {
         this.setState({
           likes: {
             lognameLikesThis: true,
             numLikes: num_likes + 1,
-            url: like_data.url,
+            url: likeData.url,
           },
         });
       })
       .catch((error) => console.log(error));
   }
 
-  handleDeleteComment(comment_id) {
-    const commentUrl = `/api/v1/comments/${comment_id.toString()}/`;
+  handleDeleteComment(commentId) {
+    const commentUrl = `/api/v1/comments/${commentId.toString()}/`;
     fetch(commentUrl, { credentials: 'same-origin', method: 'DELETE' })
       .then((response) => {
         if (!(response.ok && response.status === 204)) { throw Error(response.statusText); }
       })
       .then(() => {
         const after_comments = this.state.comments.filter(
-          (comment) => comment.commentid !== comment_id,
+          (comment) => comment.commentid !== commentId,
         );
         this.setState({
           comments: after_comments,
@@ -119,21 +117,21 @@ class Post extends React.Component {
 
   handleAddComment(newComment) {
     const { commentUrl } = this.state;
-    const comment_text = { text: newComment };
-    const curr_comments = this.state.comments;
+    const commentText = { text: newComment };
+    const { comments } = this.state;
     fetch(commentUrl, {
       credentials: 'same-origin',
       method: 'POST',
-      body: JSON.stringify(comment_text),
+      body: JSON.stringify(commentText),
       headers: { 'Content-Type': 'application/json' },
     })
       .then((response) => {
         if (!(response.ok && response.status === 201)) { throw Error(response.statusText); }
         return response.json();
       })
-      .then((comment_data) => {
+      .then((commentData) => {
         this.setState({
-          comments: curr_comments.concat(comment_data),
+          comments: comments.concat(commentData),
         });
       })
       .catch((error) => console.log(error));
@@ -146,7 +144,6 @@ class Post extends React.Component {
       ownerShowUrl,
       imgUrl,
       postShowUrl,
-      postid,
       created,
       comments,
       likes,
