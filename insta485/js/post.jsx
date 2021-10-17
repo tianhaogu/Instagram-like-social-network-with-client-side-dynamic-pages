@@ -1,6 +1,9 @@
 import React from "react";
 import PropTypes from "prop-types";
 import moment from 'moment';
+import CommentSubmission from './commentSubmission';
+import Comment from './comment';
+
 
 class Post extends React.Component {
   constructor(props) {
@@ -16,14 +19,14 @@ class Post extends React.Component {
       comments: [],
       likes: { lognameLikesThis: false, numLikes: 0, url: null },
       commentUrl: "",
-      likeUrl: "",
-      newComment: "",
+      likeUrl: ""
+      //newComment: "",
     };
     this.handleUnlike = this.handleUnlike.bind(this);
     this.handleDoubleClick = this.handleDoubleClick.bind(this);
     this.handleLike = this.handleLike.bind(this);
     this.handleDeleteComment = this.handleDeleteComment.bind(this);
-    this.handleCommentChange = this.handleCommentChange.bind(this);
+    //this.handleCommentChange = this.handleCommentChange.bind(this);
     this.handleAddComment = this.handleAddComment.bind(this);
   }
 
@@ -134,17 +137,17 @@ class Post extends React.Component {
       .catch((error) => console.log(error));
   }
 
-  handleCommentChange(event) {
-    this.setState({
-      newComment: event.target.value,
-    });
-  }
+  // handleCommentChange(event) {
+  //   this.setState({
+  //     newComment: event.target.value,
+  //   });
+  // }
 
-  handleAddComment(event) {
+  handleAddComment(newComment) {
     const commentUrl = this.state.commentUrl;
-    const comment_text = { text: this.state.newComment };
-    console.log(this.state.newComment);
-    console.log(event.target.value);
+    const comment_text = { text: newComment };
+    // console.log(this.state.newComment);
+    // console.log(event.target.value);
     let curr_comments = this.state.comments;
     fetch(commentUrl, {
       credentials: "same-origin",
@@ -163,25 +166,18 @@ class Post extends React.Component {
         });
       })
       .catch((error) => console.log(error));
-    this.setState({
-      newComment: "",
-    });
-    event.preventDefault();
+    // this.setState({
+    //   newComment: "",
+    // });
+    // event.preventDefault();
   }
 
   render() {
     const {
-      owner,
-      ownerImgUrl,
-      ownerShowUrl,
-      imgUrl,
-      postShowUrl,
-      postid,
-      created,
-      comments,
-      likes,
-      commentUrl,
-      newComment,
+      owner, ownerImgUrl, ownerShowUrl,
+      imgUrl, postShowUrl, postid,
+      created, comments, likes,
+      commentUrl//, newComment,
     } = this.state;
     let numLikes = likes.numLikes;
     let likeComp;
@@ -204,40 +200,33 @@ class Post extends React.Component {
         </button>
       );
     }
-    let commentComp = comments.map((comment) => (
-      <div key={comment.commentid}>
-        <a href={comment.ownerShowUrl}>
-          <b>{comment.owner}</b>
-        </a>
-        <p>{comment.text}</p>
-        {comment.lognameOwnsThis === true && (
-          <button
-            className="delete-comment-button"
-            onClick={this.handleDeleteComment.bind(this, comment.commentid)}
-          >
-            delete
-          </button>
-        )}
-      </div>
-    ));
-    let commentSubmission = (
-      <form className="comment-form" onSubmit={this.handleAddComment}>
-        <label>
-          <input
-            type="text"
-            value={this.state.newComment}
-            onChange={this.handleCommentChange}
-          />
-        </label>
-      </form>
-    );
-
-    // sqlDate in SQL DATETIME format ("yyyy-mm-dd hh:mm:ss.ms")
-    const sqlDateTime = created.split(' ');
-    const momentInput = `${sqlDateTime[0]}T${sqlDateTime[1]}`;
-    const utcTime = moment.utc(momentInput);
-    const timeCreated = moment(utcTime).fromNow();
-
+    // let commentComp = comments.map((comment) => (
+    //   <div key={comment.commentid}>
+    //     <a href={comment.ownerShowUrl}>
+    //       <b>{comment.owner}</b>
+    //     </a>
+    //     <p>{comment.text}</p>
+    //     {comment.lognameOwnsThis === true && (
+    //       <button
+    //         className="delete-comment-button"
+    //         onClick={this.handleDeleteComment.bind(this, comment.commentid)}
+    //       >
+    //         delete
+    //       </button>
+    //     )}
+    //   </div>
+    // ));
+    // let commentSubmission = (
+    //   <form className="comment-form" onSubmit={this.handleAddComment}>
+    //     <label>
+    //       <input
+    //         type="text"
+    //         value={this.state.newComment}
+    //         onChange={this.handleCommentChange}
+    //       />
+    //     </label>
+    //   </form>
+    // );
     const style_owner = { display: "inline-block", verticalAlign: "middle" };
     const style_time = { display: "inline-block", fontSize: "small" };
 
@@ -269,8 +258,28 @@ class Post extends React.Component {
         <div className="postParagraph">
           {likeComp}
           {likeButton}
-          {commentComp}
-          {commentSubmission}
+          {comments.map((comment) => (
+            <div key={comment.commentid}>
+              <Comment commentObj={comment} deleteFunc={this.handleDeleteComment}/>
+              {/* <a href={comment.ownerShowUrl}>
+                <b>{comment.owner}</b>
+              </a>
+              <p>{comment.text}</p>
+              {comment.lognameOwnsThis === true && (
+                <button 
+                  className="delete-comment-button"
+                  onClick={this.handleDeleteComment.bind(this, comment.commentid)}
+                >
+                  delete
+                </button>
+              )} */}
+            </div>
+          ))}
+          {/* {commentComp} */}
+          <div key={commentUrl}>
+            <CommentSubmission addFunc={this.handleAddComment}/>
+          </div>
+          {/* {commentSubmission} */}
         </div>
       </div>
     );
