@@ -13,9 +13,7 @@ def show_explore():
     """Get Show Explore."""
     # Session Control
     logname = session.get('logname')
-    insta485.app.logger.info(logname)
     if not logname:
-
         redirect(url_for('show_login'))
 
     # Connect to database
