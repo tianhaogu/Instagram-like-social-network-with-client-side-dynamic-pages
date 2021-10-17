@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import CommentSubmission from './CommentSubmission';
+import CommentSubmission from './commentSubmission';
 import Comment from './comment';
 import PostImage from './postImage';
 import LikeControl from './likeControl';
