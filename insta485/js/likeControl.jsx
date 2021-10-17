@@ -6,7 +6,11 @@ class LikeButton extends React.Component {
     super(props);
   }
   render() {
-    return <button onClick={this.props.onClick}>LIKE</button>;
+    return (
+      <button className="like-unlike-button" onClick={this.props.onClick}>
+        LIKE
+      </button>
+    );
   }
 }
 
@@ -15,30 +19,21 @@ class UnlikeButton extends React.Component {
     super(props);
   }
   render() {
-    return <button onClick={this.props.onClick}>UNLIKE</button>;
+    return (
+      <button className="like-unlike-button" onClick={this.props.onClick}>
+        UNLIKE
+      </button>
+    );
   }
 }
 
 class LikeControl extends React.Component {
   constructor(props) {
     super(props);
-    this.handleLikeClick = this.handleLikeClick.bind(this);
-    this.handleUnlikeClick = this.handleUnlikeClick.bind(this);
-    this.state = {
-      isLognameLikesThis: this.props.isLognameLikesThis,
-    };
-  }
-
-  handleUnlikeClick() {
-    this.setState({ isLognameLikesThis: false });
-  }
-
-  handleLikeClick() {
-    this.setState({ isLognameLikesThis: true });
   }
 
   render() {
-    const isLognameLikesThis = this.state.isLognameLikesThis;
+    const isLognameLikesThis = this.props.isLognameLikesThis;
     let button;
     if (isLognameLikesThis) {
       button = <UnlikeButton onClick={this.props.handleUnlikeClick} />;
@@ -49,9 +44,11 @@ class LikeControl extends React.Component {
   }
 }
 
-likeButton.PropTypes = {
+LikeButton.PropTypes = {
   onClick: PropTypes.func.isRequired,
 };
+
+export default LikeControl;
 
 {
   /*

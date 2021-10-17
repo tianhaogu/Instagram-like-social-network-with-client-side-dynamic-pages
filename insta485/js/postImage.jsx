@@ -15,8 +15,9 @@ class PostImage extends React.Component {
             onDoubleClick={this.props.handleDoubleClick}
           />
         </button>
-        {/* THIS IS WHERE THE DOUBLE CLICK LOCKED */}
       </div>
     );
   }
 }
+
+export default PostImage;
