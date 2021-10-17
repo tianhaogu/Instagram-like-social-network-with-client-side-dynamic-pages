@@ -1,42 +1,38 @@
-import React from "react";
-import PropTypes from "prop-types";
-import CommentSubmission from "./commentSubmission";
-import Comment from "./comment";
-import PostImage from "./postImage";
-import LikeControl from "./likeControl";
-import LikeSum from "./likeSum";
-import PostHeader from "./postHeader";
+import React from 'react';
+import PropTypes from 'prop-types';
+import CommentSubmission from './CommentSubmission';
+import Comment from './comment';
+import PostImage from './postImage';
+import LikeControl from './likeControl';
+import LikeSum from './likeSum';
+import PostHeader from './postHeader';
 
 class Post extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      owner: "",
-      ownerImgUrl: "",
-      ownerShowUrl: "",
-      imgUrl: "",
-      postShowUrl: "",
-      postid: "",
-      created: "",
+      owner: '',
+      ownerImgUrl: '',
+      ownerShowUrl: '',
+      imgUrl: '',
+      postShowUrl: '',
+      postid: '',
+      created: '',
       comments: [],
       likes: { lognameLikesThis: false, numLikes: 0, url: null },
-      commentUrl: "",
-      likeUrl: "",
-      //newComment: "",
+      commentUrl: '',
+      likeUrl: '',
     };
-    //handle like function
     this.handleUnlikeClick = this.handleUnlikeClick.bind(this);
     this.handleDoubleClick = this.handleDoubleClick.bind(this);
     this.handleLikeClick = this.handleLikeClick.bind(this);
-    //handle comment function
     this.handleDeleteComment = this.handleDeleteComment.bind(this);
-    //this.handleCommentChange = this.handleCommentChange.bind(this);
     this.handleAddComment = this.handleAddComment.bind(this);
   }
 
   componentDidMount() {
-    const fetch_url = this.props.posturl;
-    fetch(fetch_url, { credentials: "same-origin", method: "GET" })
+    const { posturl } = this.props;
+    fetch(posturl, { credentials: 'same-origin', method: 'GET' })
       .then((response) => {
         if (!response.ok) throw Error(response.statusText);
         return response.json();
@@ -52,8 +48,8 @@ class Post extends React.Component {
           created: data.created,
           comments: data.comments,
           likes: data.likes,
-          commentUrl: "/api/v1/comments/?postid=" + data.postid.toString(),
-          likeUrl: "/api/v1/likes/?postid=" + data.postid.toString(),
+          commentUrl: `/api/v1/comments/?postid=${data.postid.toString()}`,
+          likeUrl: `/api/v1/likes/?postid=${data.postid.toString()}`,
         });
       })
       .catch((error) => console.log(error));
@@ -61,11 +57,10 @@ class Post extends React.Component {
 
   handleUnlikeClick() {
     const like_url = this.state.likes.url;
-    let num_likes = this.state.likes.numLikes;
-    fetch(like_url, { credentials: "same-origin", method: "DELETE" })
+    const num_likes = this.state.likes.numLikes;
+    fetch(like_url, { credentials: 'same-origin', method: 'DELETE' })
       .then((response) => {
-        if (!(response.ok && response.status === 204))
-          throw Error(response.statusText);
+        if (!(response.ok && response.status === 204)) { throw Error(response.statusText); }
       })
       .then(() => {
         this.setState({
@@ -86,12 +81,11 @@ class Post extends React.Component {
   }
 
   handleLikeClick() {
-    const likeUrl = this.state.likeUrl;
-    let num_likes = this.state.likes.numLikes;
-    fetch(likeUrl, { credentials: "same-origin", method: "POST" })
+    const { likeUrl } = this.state;
+    const num_likes = this.state.likes.numLikes;
+    fetch(likeUrl, { credentials: 'same-origin', method: 'POST' })
       .then((response) => {
-        if (!(response.ok && response.status === 201))
-          throw Error(response.statusText);
+        if (!(response.ok && response.status === 201)) { throw Error(response.statusText); }
         return response.json();
       })
       .then((like_data) => {
@@ -107,15 +101,14 @@ class Post extends React.Component {
   }
 
   handleDeleteComment(comment_id) {
-    const commentUrl = "/api/v1/comments/" + comment_id.toString() + "/";
-    fetch(commentUrl, { credentials: "same-origin", method: "DELETE" })
+    const commentUrl = `/api/v1/comments/${comment_id.toString()}/`;
+    fetch(commentUrl, { credentials: 'same-origin', method: 'DELETE' })
       .then((response) => {
-        if (!(response.ok && response.status === 204))
-          throw Error(response.statusText);
+        if (!(response.ok && response.status === 204)) { throw Error(response.statusText); }
       })
       .then(() => {
-        let after_comments = this.state.comments.filter(
-          (comment) => comment.commentid !== comment_id
+        const after_comments = this.state.comments.filter(
+          (comment) => comment.commentid !== comment_id,
         );
         this.setState({
           comments: after_comments,
@@ -124,27 +117,18 @@ class Post extends React.Component {
       .catch((error) => console.log(error));
   }
 
-  // handleCommentChange(event) {
-  //   this.setState({
-  //     newComment: event.target.value,
-  //   });
-  // }
-
   handleAddComment(newComment) {
-    const commentUrl = this.state.commentUrl;
+    const { commentUrl } = this.state;
     const comment_text = { text: newComment };
-    // console.log(this.state.newComment);
-    // console.log(event.target.value);
-    let curr_comments = this.state.comments;
+    const curr_comments = this.state.comments;
     fetch(commentUrl, {
-      credentials: "same-origin",
-      method: "POST",
+      credentials: 'same-origin',
+      method: 'POST',
       body: JSON.stringify(comment_text),
-      headers: { "Content-Type": "application/json" },
+      headers: { 'Content-Type': 'application/json' },
     })
       .then((response) => {
-        if (!(response.ok && response.status === 201))
-          throw Error(response.statusText);
+        if (!(response.ok && response.status === 201)) { throw Error(response.statusText); }
         return response.json();
       })
       .then((comment_data) => {
@@ -153,10 +137,6 @@ class Post extends React.Component {
         });
       })
       .catch((error) => console.log(error));
-    // this.setState({
-    //   newComment: "",
-    // });
-    // event.preventDefault();
   }
 
   render() {
@@ -170,79 +150,11 @@ class Post extends React.Component {
       created,
       comments,
       likes,
-      commentUrl, //, newComment,
+      commentUrl,
     } = this.state;
-    /*
-    let numLikes = likes.numLikes;
-    let likeComp;
-    if (numLikes === 0 || numLikes >= 2) {
-      likeComp = <p>{numLikes} likes</p>;
-    } else {
-      likeComp = <p>{numLikes} like</p>;
-    }
-    */
-    /* Delete the likeButton and move it to the components
-    let likeButton;
-    if (likes.lognameLikesThis === true) {
-      likeButton = (
-        <button className="like-unlike-button" onClick={this.handleUnlike}>
-          Unlike
-        </button>
-      );
-    } else {
-      likeButton = (
-        <button className="like-unlike-button" onClick={this.handleLike}>
-          Like
-        </button>
-      );
-    }
-    */
-
-    // let commentComp = comments.map((comment) => (
-    //   <div key={comment.commentid}>
-    //     <a href={comment.ownerShowUrl}>
-    //       <b>{comment.owner}</b>
-    //     </a>
-    //     <p>{comment.text}</p>
-    //     {comment.lognameOwnsThis === true && (
-    //       <button
-    //         className="delete-comment-button"
-    //         onClick={this.handleDeleteComment.bind(this, comment.commentid)}
-    //       >
-    //         delete
-    //       </button>
-    //     )}
-    //   </div>
-    // ));
-    // let commentSubmission = (
-    //   <form className="comment-form" onSubmit={this.handleAddComment}>
-    //     <label>
-    //       <input
-    //         type="text"
-    //         value={this.state.newComment}
-    //         onChange={this.handleCommentChange}
-    //       />
-    //     </label>
-    //   </form>
-    // );
 
     return (
       <div className="post">
-        {/* 
-        <div className="postHeader">
-          <a href={ownerShowUrl}>
-            <div>
-              <div style={style_owner}>
-                <img src={ownerImgUrl} width="30" height="30" alt="Portrait" />
-              </div>
-              <b style={style_owner}>{owner}</b>
-            </div>
-          </a>
-          <a href={postShowUrl}>
-            <p style={style_time}>{timeCreated}</p>
-          </a>
-        </div>
-        */}
         <PostHeader
           ownerShowUrl={ownerShowUrl}
           ownerImgUrl={ownerImgUrl}
@@ -251,51 +163,24 @@ class Post extends React.Component {
           created={created}
         />
         <PostImage imgUrl={imgUrl} handleDoubleClick={this.handleDoubleClick} />
-        {/* THIS IS THE PLACE FOR IMAGE
-        <div className="postPhoto">
-          <button>
-            <img
-              src={imgUrl}
-              alt="postPhoto"
-              onDoubleClick={this.handleDoubleClick}
-            />
-          </button>
-        </div>
-        */}
         <div className="postParagraph">
-          {/*{likeComp}*/}
           <LikeSum numLikes={likes.numLikes} />
           <LikeControl
             isLognameLikesThis={likes.lognameLikesThis}
             handleLikeClick={this.handleLikeClick}
             handleUnlikeClick={this.handleUnlikeClick}
           />
-          {/*{likeButton}*/}
           {comments.map((comment) => (
             <div key={comment.commentid}>
               <Comment
                 commentObj={comment}
                 deleteFunc={this.handleDeleteComment}
               />
-              {/* <a href={comment.ownerShowUrl}>
-                <b>{comment.owner}</b>
-              </a>
-              <p>{comment.text}</p>
-              {comment.lognameOwnsThis === true && (
-                <button 
-                  className="delete-comment-button"
-                  onClick={this.handleDeleteComment.bind(this, comment.commentid)}
-                >
-                  delete
-                </button>
-              )} */}
             </div>
           ))}
-          {/* {commentComp} */}
           <div key={commentUrl}>
             <CommentSubmission addFunc={this.handleAddComment} />
           </div>
-          {/* {commentSubmission} */}
         </div>
       </div>
     );

@@ -1,24 +1,21 @@
-import React from "react";
-import PropTypes from "prop-types";
+import React from 'react';
+import PropTypes from 'prop-types';
 
-class PostImage extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-  render() {
-    return (
-      <div className="postPhoto">
-        <button>
-          <img
-            src={this.props.imgUrl}
-            alt="postPhoto"
-            onDoubleClick={this.props.handleDoubleClick}
-          />
-        </button>
-      </div>
-    );
-  }
+function PostImage(props) {
+  const { imgUrl, handleDoubleClick } = props;
+  return (
+    <div className="postPhoto">
+      <button type="button">
+        <img
+          src={imgUrl}
+          alt="postPhoto"
+          onDoubleClick={handleDoubleClick}
+        />
+      </button>
+    </div>
+  );
 }
+
 PostImage.propTypes = {
   handleDoubleClick: PropTypes.func.isRequired,
   imgUrl: PropTypes.string.isRequired,

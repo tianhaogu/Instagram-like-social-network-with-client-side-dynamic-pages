@@ -1,11 +1,10 @@
-import React from "react";
-import PropTypes from "prop-types";
-
+import React from 'react';
+import PropTypes from 'prop-types';
 
 class CommentSubmission extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {newComment: ""};
+    this.state = { newComment: '' };
     this.handleCommentChange = this.handleCommentChange.bind(this);
     this.triggerAddComment = this.triggerAddComment.bind(this);
   }
@@ -17,24 +16,24 @@ class CommentSubmission extends React.Component {
   }
 
   triggerAddComment(event) {
-    let handleAddComment = this.props.addFunc;
-    handleAddComment(this.state.newComment);
+    const { addFunc } = this.props;
+    const { newComment } = this.state;
+    addFunc(newComment);
     this.setState({
-      newComment: "",
+      newComment: '',
     });
     event.preventDefault();
   }
 
   render() {
+    const { newComment } = this.state;
     return (
       <form className="comment-form" onSubmit={this.triggerAddComment}>
-        <label>
-          <input
-            type="text"
-            value={this.state.newComment}
-            onChange={this.handleCommentChange}
-          />
-        </label>
+        <input
+          type="text"
+          value={newComment}
+          onChange={this.handleCommentChange}
+        />
       </form>
     );
   }

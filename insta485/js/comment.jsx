@@ -1,6 +1,5 @@
-import React from "react";
-import PropTypes from "prop-types";
-
+import React from 'react';
+import PropTypes from 'prop-types';
 
 class Comment extends React.Component {
   constructor(props) {
@@ -8,23 +7,24 @@ class Comment extends React.Component {
     this.triggerDeleteComment = this.triggerDeleteComment.bind(this);
   }
 
-  triggerDeleteComment(comment_id) {
-    let handleDeleteComment = this.props.deleteFunc;
-    handleDeleteComment(comment_id);
+  triggerDeleteComment(commentId) {
+    const { deleteFunc } = this.props;
+    deleteFunc(commentId);
   }
 
   render() {
-    const comment = this.props.commentObj;
+    const { commentObj } = this.props;
     return (
       <div>
-        <a href={comment.ownerShowUrl}>
-          <b>{comment.owner}</b>
+        <a href={commentObj.ownerShowUrl}>
+          <b>{commentObj.owner}</b>
         </a>
-        <p>{comment.text}</p>
-        {comment.lognameOwnsThis === true && (
-          <button 
+        <p>{commentObj.text}</p>
+        {commentObj.lognameOwnsThis === true && (
+          <button
+            type="button"
             className="delete-comment-button"
-            onClick={this.triggerDeleteComment.bind(this, comment.commentid)}
+            onClick={this.triggerDeleteComment.bind(this, commentObj.commentid)}
           >
             delete
           </button>
@@ -35,16 +35,14 @@ class Comment extends React.Component {
 }
 
 Comment.propTypes = {
-  commentObj: PropTypes.shape(
-    {
-      commentid: PropTypes.number.isRequired,
-      lognameOwnsThis: PropTypes.bool.isRequired,
-      owner: PropTypes.string.isRequired,
-      ownerShowUrl: PropTypes.string.isRequired,
-      text: PropTypes.string.isRequired,
-      url: PropTypes.string.isRequired
-    }
-  ),
+  commentObj: PropTypes.shape({
+    commentid: PropTypes.number.isRequired,
+    lognameOwnsThis: PropTypes.bool.isRequired,
+    owner: PropTypes.string.isRequired,
+    ownerShowUrl: PropTypes.string.isRequired,
+    text: PropTypes.string.isRequired,
+    url: PropTypes.string.isRequired,
+  }),
   deleteFunc: PropTypes.func.isRequired,
 };
 

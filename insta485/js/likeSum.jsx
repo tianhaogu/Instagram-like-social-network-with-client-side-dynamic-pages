@@ -1,20 +1,31 @@
-import React from "react";
-import PropTypes from "prop-types";
-class LikeSum extends React.Component {
-  constructor(props) {
-    super(props);
-  }
+import React from 'react';
+import PropTypes from 'prop-types';
 
+class LikeSum extends React.Component {
   render() {
+    const { numLikes } = this.props;
     let likeComp;
-    if (this.props.numLikes === 0 || this.props.numLikes >= 2) {
-      likeComp = <p>{this.props.numLikes} likes</p>;
+    if (numLikes === 0 || numLikes >= 2) {
+      likeComp = (
+        <p>
+          { numLikes }
+          {' '}
+          likes
+        </p>
+      );
     } else {
-      likeComp = <p>{this.props.numLikes} like</p>;
+      likeComp = (
+        <p>
+          {numLikes}
+          {' '}
+          like
+        </p>
+      );
     }
     return likeComp;
   }
 }
+
 LikeSum.propTypes = {
   numLikes: PropTypes.number.isRequired,
 };

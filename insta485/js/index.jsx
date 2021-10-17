@@ -1,20 +1,22 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import Post from './post';
 import InfiniteScroll from 'react-infinite-scroll-component';
+import Post from './post';
 
 class Index extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      next: '', results: [], url: '', hasMore: true
+      next: '',
+      results: [],
+      hasMore: true,
     };
     this.fetchMoreData = this.fetchMoreData.bind(this);
   }
 
   componentDidMount() {
-    const fetch_url = this.props.url;
-    fetch(fetch_url, {credentials: 'same-origin', method: "GET"})
+    const { url } = this.props;
+    fetch(url, { credentials: 'same-origin', method: 'GET' })
       .then((response) => {
         if (!response.ok) throw Error(response.statusText);
         return response.json();
@@ -23,54 +25,52 @@ class Index extends React.Component {
         this.setState({
           next: data.next,
           results: data.results,
-          url: data.url
         });
       })
       .catch((error) => console.log(error));
   }
 
   fetchMoreData() {
-    if (this.state.next === '') {
+    const { next, results } = this.state;
+    if (next === '') {
       this.setState({ hasMore: false });
       return;
     }
-    const next_url = this.state.next;
-    const curr_result = this.state.results;
-    fetch(next_url, {credentials: 'same-origin', method: "GET"})
-      .then((next_response) => {
-        if (!next_response.ok) throw Error(next_response.statusText);
-        return next_response.json();
+
+    fetch(next, { credentials: 'same-origin', method: 'GET' })
+      .then((nextResponse) => {
+        if (!nextResponse.ok) throw Error(nextResponse.statusText);
+        return nextResponse.json();
       })
-      .then((next_data) => {
+      .then((nextData) => {
         this.setState({
-          next: next_data.next,
-          results: curr_result.concat(next_data.results),
-          url: next_data.url
+          next: nextData.next,
+          results: results.concat(nextData.results),
         });
       })
-      .catch((next_error) => console.log(next_error));
+      .catch((nextError) => console.log(nextError));
   }
 
   render() {
-    const results = this.state.results;
+    const { results, hasMore } = this.state;
     return (
       <div className="posts">
         <InfiniteScroll
-          dataLength={this.state.results.length}
+          dataLength={results.length}
           next={this.fetchMoreData}
-          hasMore={this.state.hasMore}
+          hasMore={hasMore}
           loader={<h4>Loading...</h4>}
           scrollThreshold="200px"
-          endMessage={
-            <p style={{ textAlign: "center" }}>
-              <b>That's all of the posts!</b>
+          endMessage={(
+            <p style={{ textAlign: 'center' }}>
+              <b>That is all of the posts!</b>
             </p>
-          }
+          )}
         >
           {results.map((result) => (
             <div key={result.postid}>
               <Post posturl={result.url} />
-              <br/>
+              <br />
             </div>
           ))}
         </InfiniteScroll>
@@ -82,5 +82,5 @@ class Index extends React.Component {
 Index.propTypes = {
   url: PropTypes.string.isRequired,
 };
-  
+
 export default Index;
