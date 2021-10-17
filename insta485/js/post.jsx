@@ -1,5 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
+import moment from 'moment';
 
 class Post extends React.Component {
   constructor(props) {
@@ -231,6 +232,12 @@ class Post extends React.Component {
       </form>
     );
 
+    // sqlDate in SQL DATETIME format ("yyyy-mm-dd hh:mm:ss.ms")
+    const sqlDateTime = created.split(' ');
+    const momentInput = `${sqlDateTime[0]}T${sqlDateTime[1]}`;
+    const utcTime = moment.utc(momentInput);
+    const timeCreated = moment(utcTime).fromNow();
+
     const style_owner = { display: "inline-block", verticalAlign: "middle" };
     const style_time = { display: "inline-block", fontSize: "small" };
 
@@ -246,7 +253,7 @@ class Post extends React.Component {
             </div>
           </a>
           <a href={postShowUrl}>
-            <p style={style_time}>{created}</p>
+            <p style={style_time}>{timeCreated}</p>
           </a>
         </div>
         <div className="postPhoto">
