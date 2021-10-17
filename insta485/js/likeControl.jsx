@@ -44,13 +44,13 @@ class LikeControl extends React.Component {
   }
 }
 
-LikeButton.PropTypes = {
+LikeButton.propTypes = {
   handleLikeClick: PropTypes.func.isRequired,
 };
-UnlikeButton.PropTypes = {
+UnlikeButton.propTypes = {
   handleUnlikeClick: PropTypes.func.isRequired,
 };
-UnlikeButton.PropTypes = {
+LikeControl.propTypes = {
   handleLikeClick: PropTypes.func.isRequired,
   handleUnlikeClick: PropTypes.func.isRequired,
   isLognameLikesThis: PropTypes.bool.isRequired,
