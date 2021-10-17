@@ -2,7 +2,6 @@
 import hashlib
 import flask
 from flask import (request, abort, jsonify, make_response, Response)
-#from werkzeug.exceptions import HTTPException
 import insta485
 
 
@@ -15,7 +14,7 @@ def check_exist(username, password):
     login_user = user_result.fetchone()
     if login_user is None or len(login_user) == 0:
         return False
-    
+
     (algorithm, salt, password_hash_db) = login_user['password'].split('$')
     hash_obj = hashlib.new(algorithm)
     password_salted = salt + password
@@ -43,9 +42,8 @@ def customer_error(status_code):
     return jsonify(**message), status_code
 
 
-# Kyle:I add this function to avoid style check?
 def check_login():
-    """A function to check the login before other operation"""
+    """Return username of logged in user."""
     if (not request.authorization) and (not flask.session):
         return customer_error(403)
     if not flask.session:
@@ -64,18 +62,7 @@ def check_login():
 @insta485.app.route('/api/v1/posts/<int:postid_url_slug>/', methods=["GET"])
 def get_post(postid_url_slug):
     """Return post on postid."""
-    if (not request.authorization) and (not flask.session):
-        return customer_error(403)
-    if not flask.session:
-        username = request.authorization['username']
-        password = request.authorization['password']
-        if not username or not password\
-                or not check_exist(username, password):
-            return customer_error(403)
-    else:
-        if "logname" not in flask.session:
-            return customer_error(403)
-        username = flask.session["logname"]
+    username = check_login()
     connection = insta485.model.get_db()
 
     post_result = connection.execute(
@@ -97,7 +84,7 @@ def get_post(postid_url_slug):
         if all_like["owner"] == username:
             like_id = all_like["likeid"]
             break
-    
+
     comment_info = connection.execute(
         "SELECT commentid, owner, text FROM comments "
         "WHERE postid = ?", (postid_url_slug,)
@@ -112,16 +99,16 @@ def get_post(postid_url_slug):
             + str(all_comment["owner"]) + '/'
         all_comment["url"] = "/api/v1/comments/"\
             + str(all_comment["commentid"]) + '/'
-    
+
     context = {
         "comments": all_comments,
         "created": curr_post["created"],
         "imgUrl": "/uploads/" + curr_post["Pfilename"],
         "likes": {
-            "lognameLikesThis": True if like_id != None else False,
+            "lognameLikesThis": True if like_id is not None else False,
             "numLikes": len(all_likes),
             "url": "/api/v1/likes/" + str(like_id) + '/'\
-                if like_id != None else like_id
+                if like_id is not None else like_id
         },
         "owner": curr_post["owner"],
         "ownerImgUrl": "/uploads/" + curr_post["Ufilename"],
@@ -148,6 +135,7 @@ def get_posts():
         if "logname" not in flask.session:
             return customer_error(403)
         username = flask.session["logname"]
+
     query = request.query_string.decode('utf-8')
     connection = insta485.model.get_db()
 
@@ -156,8 +144,8 @@ def get_posts():
     postid_lte = request.args.get("postid_lte", default=1000000, type=int)
     if size < 0 or page < 0:
         return customer_error(400)
-    
-    begin_record = size * page # should be size * (page + 1 - 1) + 1 - 1
+
+    begin_record = size * page  # should be size * (page + 1 - 1) + 1 - 1
     post_result = connection.execute(
         "SELECT P.postid, P.filename AS Pfilename, P.owner, P.created, "
         "U.filename AS Ufilename FROM posts P JOIN users U "
@@ -181,7 +169,7 @@ def get_posts():
                 if all_like["owner"] == username:
                     like_id = all_like["likeid"]
                     break
-            
+
             comment_info = connection.execute(
                 "SELECT commentid, owner, text FROM comments "
                 "WHERE postid = ?", (curr_post["postid"],)
@@ -196,16 +184,16 @@ def get_posts():
                     + all_comment["owner"] + '/'
                 all_comment["url"] = "/api/v1/comments/"\
                     + str(all_comment["commentid"]) + '/'
-            
+
             curr_json = {
                 "comments": all_comments,
                 "created": curr_post["created"],
                 "imgUrl": "/uploads/" + curr_post["Pfilename"],
                 "likes": {
-                    "lognameLikesThis": True if like_id != None else False,
+                    "lognameLikesThis": True if like_id is not None else False,
                     "numLikes": len(all_likes),
                     "url": "/api/v1/likes/" + str(like_id) + '/'\
-                        if like_id != None else like_id
+                        if like_id is not None else like_id
                 },
                 "owner": curr_post["owner"],
                 "ownerImgUrl": "/uploads/" + curr_post["Ufilename"],
@@ -217,7 +205,7 @@ def get_posts():
             result_list.append(curr_json)
         next_postid_lte = all_posts[0]["postid"] if postid_lte == 1000000\
             else postid_lte
-    
+
     context = {
         "next": '' if all_posts is None or len(all_posts) < size
             else "/api/v1/posts/" + (
@@ -232,6 +220,7 @@ def get_posts():
 
 @insta485.app.route('/api/v1/', methods=["GET"])
 def get_index():
+    """Return basic information."""
     context = {
         "comments": "/api/v1/comments/",
         "likes": "/api/v1/likes/",
@@ -244,11 +233,9 @@ def get_index():
 @insta485.app.route('/api/v1/comments/', methods=["POST"])
 def create_comment():
     """Create a new comment based on the given postid and text."""
-    # Check log in
     username = check_login()
     connection = insta485.model.get_db()
 
-    # Gain the parameters
     text = request.json.get("text")
     post_id = request.args.get("postid", default=-1, type=int)
     if post_id < 0:
@@ -282,22 +269,22 @@ def create_comment():
     return jsonify(**context), 201
 
 
-@insta485.app.route('/api/v1/comments/<int:commentid_slug>/', methods=["DELETE"])
-def delete_comment(commentid_slug):
+@insta485.app.route('/api/v1/comments/<int:cmtid_slug>/', methods=["DELETE"])
+def delete_comment(cmtid_slug):
     """Create a new comment based on the given commentid."""
     username = check_login()
     connection = insta485.model.get_db()
 
     comment_result = connection.execute(
         "SELECT commentid FROM comments WHERE commentid = ?",
-        (commentid_slug,)
+        (cmtid_slug,)
     )
     if comment_result.fetchone() is None:
         return '', 204
 
     connection.execute(
         "DELETE FROM comments WHERE commentid = ?",
-        (commentid_slug,)
+        (cmtid_slug,)
     )
     return '', 204
 
@@ -317,7 +304,7 @@ def create_like():
     curr_post = check_post.fetchone()
     if curr_post is None or len(curr_post) == 0:
         return customer_error(404)
-    
+
     like_result = connection.execute(
         "SELECT owner FROM likes WHERE postid = ?", (post_id,)
     )
@@ -337,7 +324,7 @@ def create_like():
 
     context = {
         "likeid": new_like["likeid"],
-        "url": "/api/v1/likes/" + str(new_like["likeid"]) + '/' 
+        "url": "/api/v1/likes/" + str(new_like["likeid"]) + '/'
     }
     return jsonify(**context), 201
 
@@ -354,7 +341,7 @@ def delete_like(likeid_slug):
     curr_like = like_result.fetchone()
     if curr_like is None:
         return '', 204
-    
+
     connection.execute(
         "DELETE FROM likes WHERE likeid = ?", (likeid_slug,)
     )
