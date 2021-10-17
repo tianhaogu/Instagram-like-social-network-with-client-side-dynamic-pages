@@ -37,10 +37,5 @@ class PostHeader extends React.Component {
     );
   }
 }
-PostHeader.propTypes = {
-  created: PropTypes.string.isRequired,
-  ownerShowUrl: PropTypes.string.isRequired,
-  owner: PropTypes.string.isRequired,
-  postShowUrl: PropTypes.string.isRequired,
-};
+
 export default PostHeader;

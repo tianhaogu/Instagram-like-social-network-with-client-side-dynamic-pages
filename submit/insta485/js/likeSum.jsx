@@ -15,7 +15,5 @@ class LikeSum extends React.Component {
     return likeComp;
   }
 }
-LikeSum.propTypes = {
-  numLikes: PropTypes.number.isRequired,
-};
+
 export default LikeSum;

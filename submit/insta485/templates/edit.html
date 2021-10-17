@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- DO NOT CHANGE THIS (aside from where we say 'FIXME') -->
+<div style="margin-left:15%;margin-right:15%">
+  <span><a href="{{url_for('show_user', user_url_slug=curr_user.username)}}"><img src="{{curr_user.filename}}" width="30" height="30" alt="userPhoto"></a></span>
+  <span><a href="{{url_for('show_user', user_url_slug=curr_user.username)}}">{{logname}}</a></span>
+  <form action="/accounts/?target={{url_for('show_account_edit')}}" method="post" enctype="multipart/form-data">
+    <p>Photo <input type="file" name="file" accept="image/*"/></p>
+    <p>Name <input type="text" name="fullname" value="{{curr_user.fullname}}" required/></p>
+    <p>Email <input type="text" name="email" value="{{curr_user.email}}" required/></p>
+    <input type="submit" name="update" value="submit"/>
+    <input type="hidden" name="operation" value="edit_account"/>
+</form>
+<p><a href="{{url_for('show_account_password')}}">Change password</a></p>
+<p><a href="{{url_for('show_account_delete')}}">Delete account</a></p>
+
+</div>
+{% endblock %}

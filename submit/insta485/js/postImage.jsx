@@ -19,9 +19,5 @@ class PostImage extends React.Component {
     );
   }
 }
-PostImage.propTypes = {
-  handleDoubleClick: PropTypes.func.isRequired,
-  imgUrl: PropTypes.string.isRequired,
-};
 
 export default PostImage;
