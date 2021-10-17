@@ -90,7 +90,7 @@ def operate_post():
         if curr_post["owner"] != logname:
             flask.abort(403)
         connection.execute(
-            "DELETE FROM posts WHERE postid = ?", (postid_value)
+            "DELETE FROM posts WHERE postid = ?", [postid_value]
         )
     elif operation_value == "create":
         fileobj = flask.request.files["file"]
