@@ -98,10 +98,7 @@ def operate_post():
             flask.abort(400)
 
         filename = fileobj.filename
-        uuid_basename = "{stem}{suffix}".format(
-            stem=uuid.uuid4().hex,
-            suffix=pathlib.Path(filename).suffix
-        )
+        uuid_basename = f"{uuid.uuid4().hex}{pathlib.Path(filename).suffix}"
         post_path = insta485.app.config["UPLOAD_FOLDER"]/uuid_basename
         fileobj.save(post_path)
 

@@ -1,7 +1,7 @@
 """REST API for posts."""
 import hashlib
 import flask
-from flask import (request, abort, jsonify, make_response, Response)
+from flask import (request, jsonify)
 import insta485
 
 
@@ -59,24 +59,11 @@ def check_login():
     return username
 
 
-@insta485.app.route('/api/v1/posts/<int:postid_url_slug>/', methods=["GET"])
-def get_post(postid_url_slug):
-    """Return post on postid."""
-    username = check_login()
-    connection = insta485.model.get_db()
-
-    post_result = connection.execute(
-        "SELECT P.postid, P.filename AS Pfilename, P.owner, P.created, "
-        "U.filename AS Ufilename FROM posts P JOIN users U "
-        "ON P.owner = U.username WHERE P.postid = ?", (postid_url_slug,)
-    )
-    curr_post = post_result.fetchone()
-    if curr_post is None or len(curr_post) == 0:
-        return customer_error(404)
-
+def return_json(curr_post, username, connection):
+    """Return the json information of current post."""
     like_info = connection.execute(
         "SELECT likeid, owner FROM likes "
-        "WHERE postid = ?", (postid_url_slug,)
+        "WHERE postid = ?", (curr_post["postid"],)
     )
     all_likes = like_info.fetchall()
     like_id = None
@@ -87,7 +74,7 @@ def get_post(postid_url_slug):
 
     comment_info = connection.execute(
         "SELECT commentid, owner, text FROM comments "
-        "WHERE postid = ?", (postid_url_slug,)
+        "WHERE postid = ?", (curr_post["postid"],)
     )
     all_comments = comment_info.fetchall()
     for all_comment in all_comments:
@@ -96,28 +83,51 @@ def get_post(postid_url_slug):
         else:
             all_comment["lognameOwnsThis"] = False
         all_comment["ownerShowUrl"] = "/users/"\
-            + str(all_comment["owner"]) + '/'
+            + all_comment["owner"] + '/'
         all_comment["url"] = "/api/v1/comments/"\
             + str(all_comment["commentid"]) + '/'
 
-    context = {
+    if like_id is not None:
+        like_url = "/api/v1/likes/" + str(like_id) + '/'
+    else:
+        like_url = None
+
+    curr_json = {
         "comments": all_comments,
         "created": curr_post["created"],
         "imgUrl": "/uploads/" + curr_post["Pfilename"],
         "likes": {
-            "lognameLikesThis": True if like_id is not None else False,
+            "lognameLikesThis": bool(like_id),
             "numLikes": len(all_likes),
-            "url": "/api/v1/likes/" + str(like_id) + '/'\
-                if like_id is not None else like_id
+            "url": like_url
         },
         "owner": curr_post["owner"],
         "ownerImgUrl": "/uploads/" + curr_post["Ufilename"],
         "ownerShowUrl": "/users/" + curr_post["owner"] + '/',
         "postShowUrl": "/posts/" + str(curr_post["postid"]) + '/',
         "postid": curr_post["postid"],
-        "url": request.path
+        "url": "/api/v1/posts/" + str(curr_post["postid"]) + '/'
     }
-    return jsonify(**context)
+    return curr_json
+
+
+@insta485.app.route('/api/v1/posts/<int:postid_url_slug>/', methods=["GET"])
+def get_post(postid_url_slug):
+    """Return post on postid."""
+    username = check_login()
+    connection = insta485.model.get_db()
+
+    post_result_ = connection.execute(
+        "SELECT P.postid, P.filename AS Pfilename, P.owner, P.created, "
+        "U.filename AS Ufilename FROM posts P JOIN users U "
+        "ON P.owner = U.username WHERE P.postid = ?", (postid_url_slug,)
+    )
+    curr_post = post_result_.fetchone()
+    if curr_post is None or len(curr_post) == 0:
+        return customer_error(404)
+
+    curr_json = return_json(curr_post, username, connection)
+    return jsonify(**curr_json)
 
 
 @insta485.app.route('/api/v1/posts/', methods=["GET"])
@@ -159,59 +169,16 @@ def get_posts():
     result_list = []
     if all_posts is not None and len(all_posts) != 0:
         for curr_post in all_posts:
-            like_info = connection.execute(
-                "SELECT likeid, owner FROM likes "
-                "WHERE postid = ?", (curr_post["postid"],)
-            )
-            all_likes = like_info.fetchall()
-            like_id = None
-            for all_like in all_likes:
-                if all_like["owner"] == username:
-                    like_id = all_like["likeid"]
-                    break
-
-            comment_info = connection.execute(
-                "SELECT commentid, owner, text FROM comments "
-                "WHERE postid = ?", (curr_post["postid"],)
-            )
-            all_comments = comment_info.fetchall()
-            for all_comment in all_comments:
-                if all_comment["owner"] == username:
-                    all_comment["lognameOwnsThis"] = True
-                else:
-                    all_comment["lognameOwnsThis"] = False
-                all_comment["ownerShowUrl"] = "/users/"\
-                    + all_comment["owner"] + '/'
-                all_comment["url"] = "/api/v1/comments/"\
-                    + str(all_comment["commentid"]) + '/'
-
-            curr_json = {
-                "comments": all_comments,
-                "created": curr_post["created"],
-                "imgUrl": "/uploads/" + curr_post["Pfilename"],
-                "likes": {
-                    "lognameLikesThis": True if like_id is not None else False,
-                    "numLikes": len(all_likes),
-                    "url": "/api/v1/likes/" + str(like_id) + '/'\
-                        if like_id is not None else like_id
-                },
-                "owner": curr_post["owner"],
-                "ownerImgUrl": "/uploads/" + curr_post["Ufilename"],
-                "ownerShowUrl": "/users/" + curr_post["owner"] + '/',
-                "postShowUrl": "/posts/" + str(curr_post["postid"]) + '/',
-                "postid": curr_post["postid"],
-                "url": "/api/v1/posts/" + str(curr_post["postid"]) + '/'
-            }
+            curr_json = return_json(curr_post, username, connection)
             result_list.append(curr_json)
         next_postid_lte = all_posts[0]["postid"] if postid_lte == 1000000\
             else postid_lte
 
     context = {
         "next": '' if all_posts is None or len(all_posts) < size
-            else "/api/v1/posts/" + (
-                "?size={}&page={}&postid_lte={}".format(
-                size, page + 1, next_postid_lte)
-            ),
+                else "/api/v1/posts/" + (
+                    f"?size={size}&page={page+1}&postid_lte={next_postid_lte}"
+                ),
         "results": result_list,
         "url": request.path if query == '' else request.path + '?' + query
     }
@@ -247,7 +214,6 @@ def create_comment():
     if curr_post is None or len(curr_post) == 0:
         return customer_error(404)
 
-    # Insert Data
     connection.execute(
         "INSERT INTO comments(owner, postid, text) VALUES "
         "(?, ?, ?)", (username, post_id, text,)
@@ -272,7 +238,7 @@ def create_comment():
 @insta485.app.route('/api/v1/comments/<int:cmtid_slug>/', methods=["DELETE"])
 def delete_comment(cmtid_slug):
     """Create a new comment based on the given commentid."""
-    username = check_login()
+    check_login()
     connection = insta485.model.get_db()
 
     comment_result = connection.execute(
@@ -332,7 +298,7 @@ def create_like():
 @insta485.app.route('/api/v1/likes/<int:likeid_slug>/', methods=["DELETE"])
 def delete_like(likeid_slug):
     """Delete a post based on the likeid given."""
-    username = check_login()
+    check_login()
     connection = insta485.model.get_db()
 
     like_result = connection.execute(

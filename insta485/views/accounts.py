@@ -134,10 +134,7 @@ def create_operation(connection):
         abort(409)
 
     filename = fileobj.filename
-    uuid_basename = "{stem}{suffix}".format(
-        stem=uuid.uuid4().hex,
-        suffix=pathlib.Path(filename).suffix
-    )
+    uuid_basename = f"{uuid.uuid4().hex}{pathlib.Path(filename).suffix}"
     initial_avartar_path = insta485.app.config["UPLOAD_FOLDER"]/uuid_basename
     fileobj.save(initial_avartar_path)
 
@@ -273,10 +270,7 @@ def edit_account_operation(connection):
 
         # insert new file
         filename = fileobj.filename
-        uuid_basename = "{stem}{suffix}".format(
-            stem=uuid.uuid4().hex,
-            suffix=pathlib.Path(filename).suffix
-        )
+        uuid_basename = f"{uuid.uuid4().hex}{pathlib.Path(filename).suffix}"
         avartar_path = insta485.app.config["UPLOAD_FOLDER"]/uuid_basename
         fileobj.save(avartar_path)
         connection.execute(
