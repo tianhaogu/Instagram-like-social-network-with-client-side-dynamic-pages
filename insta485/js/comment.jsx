@@ -16,19 +16,27 @@ class Comment extends React.Component {
     const { commentObj } = this.props;
     return (
       <div>
-        <a href={commentObj.ownerShowUrl}>
-          <b>{commentObj.owner}</b>
-        </a>
-        <p>{commentObj.text}</p>
-        {commentObj.lognameOwnsThis === true && (
-          <button
-            type="button"
-            className="delete-comment-button"
-            onClick={this.triggerDeleteComment.bind(this, commentObj.commentid)}
-          >
-            delete
-          </button>
-        )}
+        <p>
+          <span>
+            <a href={commentObj.ownerShowUrl}>
+              <b>{commentObj.owner}</b>
+            </a>
+          </span>
+          <span> : </span>
+          <span>{commentObj.text}</span>
+          <span>      </span>
+          <span>
+            {commentObj.lognameOwnsThis === true && (
+            <button
+              type="button"
+              className="delete-comment-button"
+              onClick={this.triggerDeleteComment.bind(this, commentObj.commentid)}
+            >
+              delete
+            </button>
+            )}
+          </span>
+        </p>
       </div>
     );
   }

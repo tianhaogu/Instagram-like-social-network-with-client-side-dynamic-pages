@@ -75,6 +75,7 @@ class Post extends React.Component {
 
   handleDoubleClick() {
     const { likes } = this.state;
+    this.showLover();
     if (likes.lognameLikesThis === false) {
       this.handleLikeClick();
     }
@@ -154,7 +155,7 @@ class Post extends React.Component {
     } = this.state;
 
     return (
-      <div className="post">
+      <div className="userDiv">
         <PostHeader
           ownerShowUrl={ownerShowUrl}
           ownerImgUrl={ownerImgUrl}
@@ -162,8 +163,12 @@ class Post extends React.Component {
           postShowUrl={postShowUrl}
           created={created}
         />
-        <PostImage imgUrl={imgUrl} handleDoubleClick={this.handleDoubleClick} />
-        <div className="postParagraph">
+        <PostImage
+          className="postsImg"
+          imgUrl={imgUrl}
+          handleDoubleClick={this.handleDoubleClick}
+        />
+        <div className="userParagraph">
           <LikeSum numLikes={likes.numLikes} />
           <LikeControl
             isLognameLikesThis={likes.lognameLikesThis}

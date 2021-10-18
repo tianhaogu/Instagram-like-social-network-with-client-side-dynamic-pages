@@ -4,11 +4,12 @@ import PropTypes from 'prop-types';
 function PostImage(props) {
   const { imgUrl, handleDoubleClick } = props;
   return (
-    <div className="postPhoto">
-      <button type="button">
+    <div className="postsImg">
+      <button type="button" className="postsImgButton">
         <img
           src={imgUrl}
           alt="postPhoto"
+          className="postsImg"
           onDoubleClick={handleDoubleClick}
         />
       </button>

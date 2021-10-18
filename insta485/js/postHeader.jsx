@@ -26,7 +26,7 @@ class PostHeader extends React.Component {
     const timeCreated = this.convertime();
 
     return (
-      <div className="postHeader">
+      <div className="userHeader">
         <a href={ownerShowUrl}>
           <div>
             <div style={styleOwner}>
@@ -41,7 +41,7 @@ class PostHeader extends React.Component {
           </div>
         </a>
         <a href={postShowUrl}>
-          <p style={styleTime}>{timeCreated}</p>
+          <p className="postTime">{timeCreated}</p>
           {' '}
         </a>
       </div>
